@@ -1,0 +1,29 @@
+# Archivos de configuración y credenciales secretas
+.env
+.env.*
+!.env.example
+
+# Dependencias de Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de compilación (.NET / C# / Java / C++)
+bin/
+obj/
+build/
+dist/
+
+# Archivos de configuración de Editores e IDEs
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Archivos de registros (logs)
+*.log
+
+# Archivos temporales del Sistema Operativo
+.DS_Store
+Thumbs.db
