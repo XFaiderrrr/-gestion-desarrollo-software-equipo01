@@ -59,7 +59,7 @@ proyecto-microservicios/
 El servicio de usuarios se encarga de gestionar la información relacionada
 con los usuarios del sistema.
 
-### Funcionalidades
+### Funcionalidades (EJEMPLO)
 
 - Registro de usuarios.
 - Consulta de usuarios.
