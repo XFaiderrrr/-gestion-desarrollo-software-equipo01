@@ -51,3 +51,17 @@ proyecto-microservicios/
 │   └── README.md
 └── entregables/
     └── practica1_reporte.pdf
+    
+---
+
+## Servicio de Usuarios
+
+El servicio de usuarios se encarga de gestionar la información relacionada
+con los usuarios del sistema.
+
+### Funcionalidades
+
+- Registro de usuarios.
+- Consulta de usuarios.
+- Actualización de información.
+- Validación de datos.
