@@ -42,9 +42,15 @@ jobs:
 
     steps:
 
+      # --------------------------------------------------
+      # 1. Descargar el código
+      # --------------------------------------------------
       - name: Descargar código
         uses: actions/checkout@v4
 
+      # --------------------------------------------------
+      # 2. Configurar PHP 7.3
+      # --------------------------------------------------
       - name: Configurar PHP 7.3
         uses: shivammathur/setup-php@v2
         with:
@@ -52,14 +58,20 @@ jobs:
           extensions: pdo, pdo_mysql
           coverage: none
 
+      # --------------------------------------------------
+      # 3. Mostrar versiones
+      # --------------------------------------------------
       - name: Mostrar versiones
         run: |
-          echo "=== PHP ==="
+          echo "=== VERSION DE PHP ==="
           php -v
 
-          echo "=== Extensiones ==="
+          echo "=== EXTENSIONES PHP ==="
           php -m
 
+      # --------------------------------------------------
+      # 4. Validar sintaxis de todos los archivos PHP
+      # --------------------------------------------------
       - name: Validar sintaxis PHP
         run: |
           echo "Validando archivos PHP..."
@@ -68,13 +80,17 @@ jobs:
             -not -path "./.git/*")
 
           for file in $files; do
+            echo "----------------------------------------"
             echo "Validando: $file"
             php -l "$file"
           done
 
+      # --------------------------------------------------
+      # 5. Comprobar conexión con MySQL
+      # --------------------------------------------------
       - name: Preparar base de datos
         run: |
-          echo "Esperando conexión con MySQL..."
+          echo "Comprobando conexión con MySQL..."
 
           mysql \
             -h 127.0.0.1 \
@@ -83,10 +99,15 @@ jobs:
             -proot \
             -e "SELECT VERSION();"
 
-          echo "MySQL disponible."
+          echo "MySQL disponible correctamente."
 
+      # --------------------------------------------------
+      # 6. Crear tabla users
+      # --------------------------------------------------
       - name: Crear tablas de autenticación
         run: |
+          echo "Creando tabla users..."
+
           mysql \
             -h 127.0.0.1 \
             -P 3306 \
@@ -105,16 +126,45 @@ jobs:
 
           SQL
 
+          echo "Tabla users creada correctamente."
+
+      # --------------------------------------------------
+      # 7. Iniciar servidor PHP
+      # --------------------------------------------------
       - name: Iniciar servidor PHP
         run: |
+          echo "Iniciando servidor PHP..."
+
           php -S 127.0.0.1:8000 \
             -t auth-service/public \
             > /tmp/php-server.log 2>&1 &
 
           sleep 3
 
+          echo "Servidor PHP iniciado."
+
+      # --------------------------------------------------
+      # 8. Probar conexión PHP -> MySQL mediante PDO
+      # --------------------------------------------------
+      - name: Prueba de conexión PDO
+        run: |
+          echo "Probando conexión PDO..."
+
+          response=$(curl -s \
+            "http://127.0.0.1:8000/test-db.php")
+
+          echo "Respuesta de PDO:"
+          echo "$response"
+
+          echo "$response" | grep -q '"success":true'
+
+      # --------------------------------------------------
+      # 9. Probar registro
+      # --------------------------------------------------
       - name: Prueba de registro
         run: |
+          echo "Probando registro de usuario..."
+
           response=$(curl -s -X POST \
             "http://127.0.0.1:8000/?action=register" \
             -H "Content-Type: application/json" \
@@ -125,8 +175,13 @@ jobs:
 
           echo "$response" | grep -q '"success":true'
 
+      # --------------------------------------------------
+      # 10. Probar login
+      # --------------------------------------------------
       - name: Prueba de login
         run: |
+          echo "Probando login..."
+
           response=$(curl -s -X POST \
             "http://127.0.0.1:8000/?action=login" \
             -H "Content-Type: application/json" \
@@ -137,20 +192,41 @@ jobs:
 
           echo "$response" | grep -q '"success":true'
 
+      # --------------------------------------------------
+      # 11. Mostrar logs en caso de error
+      # --------------------------------------------------
       - name: Mostrar logs PHP si ocurre un error
         if: failure()
         run: |
-          echo "=== LOG DEL SERVIDOR PHP ==="
-          cat /tmp/php-server.log || true
+          echo "========================================"
+          echo "LOG DEL SERVIDOR PHP"
+          echo "========================================"
 
+          if [ -f /tmp/php-server.log ]; then
+            cat /tmp/php-server.log
+          else
+            echo "No existe el archivo de log."
+          fi
+
+      # --------------------------------------------------
+      # 12. Generar artefacto
+      # --------------------------------------------------
       - name: Generar artefacto
         run: |
+          echo "Generando ZIP del proyecto..."
+
           mkdir -p build
 
           zip -r build/tiendaVideojuegos_mc.zip . \
             -x ".git/*" \
             -x "build/*"
 
+          echo "Artefacto generado:"
+          ls -lh build/
+
+      # --------------------------------------------------
+      # 13. Subir artefacto a GitHub Actions
+      # --------------------------------------------------
       - name: Subir artefacto
         uses: actions/upload-artifact@v4
         with:

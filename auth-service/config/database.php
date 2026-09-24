@@ -9,21 +9,10 @@ class Database
 
     public function __construct()
     {
-        /*
-         * En AppServ local:
-         *   DB_HOST     no existe  -> localhost
-         *   DB_NAME     no existe  -> tienda_auth
-         *   DB_USER     no existe  -> root
-         *   DB_PASSWORD no existe  -> ""
-         *
-         * En GitHub Actions:
-         *   Estas variables serán proporcionadas por ci.yml
-         */
-
         $this->host = getenv("DB_HOST") ?: "localhost";
         $this->dbName = getenv("DB_NAME") ?: "tienda_auth";
         $this->username = getenv("DB_USER") ?: "root";
-        $this->password = getenv("DB_PASSWORD") ?: "";
+        $this->password = getenv("DB_PASSWORD") ?: "12345678";
     }
 
     public function connect()
@@ -54,10 +43,19 @@ class Database
 
             http_response_code(500);
 
-            echo json_encode([
+            $response = [
                 "success" => false,
                 "message" => "Error de conexión con la base de datos"
-            ]);
+            ];
+
+            if (getenv("GITHUB_ACTIONS") === "true") {
+                $response["debug"] = $e->getMessage();
+            }
+
+            echo json_encode(
+                $response,
+                JSON_UNESCAPED_UNICODE
+            );
 
             exit;
         }
