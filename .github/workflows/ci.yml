@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  build-test:
+    name: Build y pruebas
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: tienda_auth
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP 7.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.3'
+          extensions: pdo, pdo_mysql
+          coverage: none
+
+      - name: Mostrar versiones
+        run: |
+          php -v
+          php -m
+
+      - name: Validar sintaxis PHP
+        run: |
+          echo "Validando archivos PHP..."
+
+          files=$(find . -type f -name "*.php" \
+            -not -path "./.git/*")
+
+          for file in $files; do
+            echo "Validando: $file"
+            php -l "$file"
+          done
+
+      - name: Preparar base de datos
+        run: |
+          mysql \
+            -h 127.0.0.1 \
+            -P 3306 \
+            -u root \
+            -proot \
+            -e "CREATE DATABASE IF NOT EXISTS tienda_auth;"
+
+      - name: Crear tablas de autenticación
+        run: |
+          mysql \
+            -h 127.0.0.1 \
+            -P 3306 \
+            -u root \
+            -proot \
+            tienda_auth <<'SQL'
+
+          CREATE TABLE IF NOT EXISTS users (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              nombre VARCHAR(100) NOT NULL,
+              email VARCHAR(150) NOT NULL UNIQUE,
+              password VARCHAR(255) NOT NULL,
+              rol ENUM('usuario', 'admin') NOT NULL DEFAULT 'usuario',
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+
+          SQL
+
+      - name: Iniciar servidor PHP
+        run: |
+          php -S 127.0.0.1:8000 \
+            -t auth-service/public \
+            > /tmp/php-server.log 2>&1 &
+
+          sleep 3
+
+      - name: Prueba de registro
+        run: |
+          response=$(curl -s -X POST \
+            "http://127.0.0.1:8000/?action=register" \
+            -H "Content-Type: application/json" \
+            -d '{"nombre":"CI Test","email":"ci@test.com","password":"123456"}')
+
+          echo "Respuesta:"
+          echo "$response"
+
+          echo "$response" | grep -q '"success":true'
+
+      - name: Prueba de login
+        run: |
+          response=$(curl -s -X POST \
+            "http://127.0.0.1:8000/?action=login" \
+            -H "Content-Type: application/json" \
+            -d '{"email":"ci@test.com","password":"123456"}')
+
+          echo "Respuesta:"
+          echo "$response"
+
+          echo "$response" | grep -q '"success":true'
+
+      - name: Generar artefacto
+        run: |
+          mkdir -p build
+
+          zip -r build/tiendaVideojuegos_mc.zip . \
+            -x ".git/*" \
+            -x "build/*"
+
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiendaVideojuegos_mc
+          path: build/tiendaVideojuegos_mc.zip
+          if-no-files-found: error
+          retention-days: 7
