@@ -6,35 +6,55 @@ class Database
     private $dbName;
     private $username;
     private $password;
+    private $debug;
 
     public function __construct()
     {
-        $this->host = getenv("DB_HOST") ?: "localhost";
-        $this->dbName = getenv("DB_NAME") ?: "tienda_auth";
-        $this->username = getenv("DB_USER") ?: "root";
-        $this->password = getenv("DB_PASSWORD") ?: "12345678";
+        $this->host = getenv("DB_HOST");
+
+        if ($this->host === false || $this->host === "") {
+            $this->host = "localhost";
+        }
+
+        $this->dbName = getenv("DB_NAME");
+
+        if ($this->dbName === false || $this->dbName === "") {
+            $this->dbName = "tienda_auth";
+        }
+
+        $this->username = getenv("DB_USER");
+
+        if ($this->username === false || $this->username === "") {
+            $this->username = "root";
+        }
+
+        $this->password = getenv("DB_PASSWORD");
+
+        if ($this->password === false) {
+            $this->password = "12345678";
+        }
+
+        $debug = getenv("DB_DEBUG");
+        $this->debug = ($debug === "true");
     }
 
     public function connect()
     {
         try {
 
-            $connection = new PDO(
+            $dsn =
                 "mysql:host=" . $this->host .
                 ";dbname=" . $this->dbName .
-                ";charset=utf8mb4",
+                ";charset=utf8mb4";
+
+            $connection = new PDO(
+                $dsn,
                 $this->username,
-                $this->password
-            );
-
-            $connection->setAttribute(
-                PDO::ATTR_ERRMODE,
-                PDO::ERRMODE_EXCEPTION
-            );
-
-            $connection->setAttribute(
-                PDO::ATTR_DEFAULT_FETCH_MODE,
-                PDO::FETCH_ASSOC
+                $this->password,
+                array(
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                )
             );
 
             return $connection;
@@ -43,13 +63,17 @@ class Database
 
             http_response_code(500);
 
-            $response = [
+            $response = array(
                 "success" => false,
                 "message" => "Error de conexión con la base de datos"
-            ];
+            );
 
-            if (getenv("GITHUB_ACTIONS") === "true") {
+            if ($this->debug) {
+
                 $response["debug"] = $e->getMessage();
+                $response["host"] = $this->host;
+                $response["database"] = $this->dbName;
+                $response["user"] = $this->username;
             }
 
             echo json_encode(

@@ -9,20 +9,28 @@ on:
     branches:
       - main
 
+
 jobs:
 
   build-test:
+
     name: Build y pruebas
+
     runs-on: ubuntu-latest
+
 
     env:
       DB_HOST: 127.0.0.1
       DB_NAME: tienda_auth
       DB_USER: root
       DB_PASSWORD: root
+      DB_DEBUG: true
+
 
     services:
+
       mysql:
+
         image: mysql:8.0.33
 
         command: --default-authentication-plugin=mysql_native_password
@@ -36,61 +44,96 @@ jobs:
 
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
-          --health-interval=10s
+          --health-interval=5s
           --health-timeout=5s
-          --health-retries=10
+          --health-retries=20
+
 
     steps:
 
-      # --------------------------------------------------
-      # 1. Descargar el código
-      # --------------------------------------------------
+
+      # ========================================
+      # CHECKOUT
+      # ========================================
+
       - name: Descargar código
+
         uses: actions/checkout@v4
 
-      # --------------------------------------------------
-      # 2. Configurar PHP 7.3
-      # --------------------------------------------------
+
+
+      # ========================================
+      # PHP
+      # ========================================
+
       - name: Configurar PHP 7.3
+
         uses: shivammathur/setup-php@v2
+
         with:
-          php-version: '7.3'
-          extensions: pdo, pdo_mysql
+          php-version: "7.3"
+          extensions: pdo,pdo_mysql
           coverage: none
 
-      # --------------------------------------------------
-      # 3. Mostrar versiones
-      # --------------------------------------------------
+
+
+      # ========================================
+      # VERSIONES
+      # ========================================
+
       - name: Mostrar versiones
+
         run: |
-          echo "=== VERSION DE PHP ==="
+
+          echo "===================="
+          echo "PHP"
+          echo "===================="
+
           php -v
 
-          echo "=== EXTENSIONES PHP ==="
+
+          echo "===================="
+          echo "EXTENSIONES"
+          echo "===================="
+
           php -m
 
-      # --------------------------------------------------
-      # 4. Validar sintaxis de todos los archivos PHP
-      # --------------------------------------------------
+
+
+      # ========================================
+      # SINTAXIS PHP
+      # ========================================
+
       - name: Validar sintaxis PHP
+
         run: |
+
           echo "Validando archivos PHP..."
 
           files=$(find . -type f -name "*.php" \
             -not -path "./.git/*")
 
-          for file in $files; do
-            echo "----------------------------------------"
-            echo "Validando: $file"
+          for file in $files
+          do
+
+            echo "--------------------------------"
+            echo "Archivo: $file"
+
             php -l "$file"
+
           done
 
-      # --------------------------------------------------
-      # 5. Comprobar conexión con MySQL
-      # --------------------------------------------------
-      - name: Preparar base de datos
+
+
+      # ========================================
+      # COMPROBAR MYSQL
+      # ========================================
+
+      - name: Comprobar MySQL
+
         run: |
-          echo "Comprobando conexión con MySQL..."
+
+          echo "Probando conexión directa con MySQL..."
 
           mysql \
             -h 127.0.0.1 \
@@ -99,14 +142,15 @@ jobs:
             -proot \
             -e "SELECT VERSION();"
 
-          echo "MySQL disponible correctamente."
 
-      # --------------------------------------------------
-      # 6. Crear tabla users
-      # --------------------------------------------------
-      - name: Crear tablas de autenticación
+
+      # ========================================
+      # CREAR TABLA
+      # ========================================
+
+      - name: Crear tabla users
+
         run: |
-          echo "Creando tabla users..."
 
           mysql \
             -h 127.0.0.1 \
@@ -115,122 +159,237 @@ jobs:
             -proot \
             tienda_auth <<'SQL'
 
+
           CREATE TABLE IF NOT EXISTS users (
+
               id INT AUTO_INCREMENT PRIMARY KEY,
+
               nombre VARCHAR(100) NOT NULL,
+
               email VARCHAR(150) NOT NULL UNIQUE,
+
               password VARCHAR(255) NOT NULL,
-              rol ENUM('usuario', 'admin') NOT NULL DEFAULT 'usuario',
-              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+              rol ENUM('usuario', 'admin')
+                  NOT NULL
+                  DEFAULT 'usuario',
+
+              created_at TIMESTAMP
+                  DEFAULT CURRENT_TIMESTAMP
+
           );
+
 
           SQL
 
-          echo "Tabla users creada correctamente."
 
-      # --------------------------------------------------
-      # 7. Iniciar servidor PHP
-      # --------------------------------------------------
-      - name: Iniciar servidor PHP
+          echo "Tabla users creada."
+
+
+
+      # ========================================
+      # VERIFICAR TABLA
+      # ========================================
+
+      - name: Verificar tabla users
+
         run: |
-          echo "Iniciando servidor PHP..."
 
-          php -S 127.0.0.1:8000 \
+          mysql \
+            -h 127.0.0.1 \
+            -P 3306 \
+            -u root \
+            -proot \
+            tienda_auth \
+            -e "DESCRIBE users;"
+
+
+
+      # ========================================
+      # SERVIDOR PHP
+      # ========================================
+
+      - name: Iniciar servidor PHP
+
+        run: |
+
+          echo "Iniciando PHP..."
+
+          php \
+            -S 127.0.0.1:8000 \
             -t auth-service/public \
             > /tmp/php-server.log 2>&1 &
 
-          sleep 3
+
+          sleep 5
+
 
           echo "Servidor PHP iniciado."
 
-      # --------------------------------------------------
-      # 8. Probar conexión PHP -> MySQL mediante PDO
-      # --------------------------------------------------
+
+
+      # ========================================
+      # PRUEBA PDO
+      # ========================================
+
       - name: Prueba de conexión PDO
+
         run: |
-          echo "Probando conexión PDO..."
+
+          echo "Probando PDO..."
 
           response=$(curl -s \
             "http://127.0.0.1:8000/test-db.php")
 
-          echo "Respuesta de PDO:"
+
+          echo "=============================="
+
           echo "$response"
 
-          echo "$response" | grep -q '"success":true'
+          echo "=============================="
 
-      # --------------------------------------------------
-      # 9. Probar registro
-      # --------------------------------------------------
+
+          echo "$response" |
+            grep -q '"success":true'
+
+
+
+      # ========================================
+      # REGISTRO
+      # ========================================
+
       - name: Prueba de registro
-        run: |
-          echo "Probando registro de usuario..."
 
-          response=$(curl -s -X POST \
+        run: |
+
+          echo "Probando registro..."
+
+          response=$(curl -s \
+            -X POST \
             "http://127.0.0.1:8000/?action=register" \
             -H "Content-Type: application/json" \
             -d '{"nombre":"CI Test","email":"ci@test.com","password":"123456"}')
 
-          echo "Respuesta:"
+
+          echo "=============================="
+
+          echo "RESPUESTA DEL REGISTRO"
+
           echo "$response"
 
-          echo "$response" | grep -q '"success":true'
+          echo "=============================="
 
-      # --------------------------------------------------
-      # 10. Probar login
-      # --------------------------------------------------
+
+          if echo "$response" | grep -q '"success":true'
+          then
+
+              echo "Registro correcto."
+
+          else
+
+              echo "Registro fallido."
+
+              echo "=============================="
+              echo "LOG DEL SERVIDOR PHP"
+              echo "=============================="
+
+              cat /tmp/php-server.log || true
+
+              exit 1
+
+          fi
+
+
+
+      # ========================================
+      # LOGIN
+      # ========================================
+
       - name: Prueba de login
+
         run: |
+
           echo "Probando login..."
 
-          response=$(curl -s -X POST \
+          response=$(curl -s \
+            -X POST \
             "http://127.0.0.1:8000/?action=login" \
             -H "Content-Type: application/json" \
             -d '{"email":"ci@test.com","password":"123456"}')
 
-          echo "Respuesta:"
+
+          echo "=============================="
+
+          echo "RESPUESTA DEL LOGIN"
+
           echo "$response"
 
-          echo "$response" | grep -q '"success":true'
+          echo "=============================="
 
-      # --------------------------------------------------
-      # 11. Mostrar logs en caso de error
-      # --------------------------------------------------
-      - name: Mostrar logs PHP si ocurre un error
-        if: failure()
-        run: |
-          echo "========================================"
-          echo "LOG DEL SERVIDOR PHP"
-          echo "========================================"
 
-          if [ -f /tmp/php-server.log ]; then
-            cat /tmp/php-server.log
+          if echo "$response" | grep -q '"success":true'
+          then
+
+              echo "Login correcto."
+
           else
-            echo "No existe el archivo de log."
+
+              echo "Login fallido."
+
+              echo "=============================="
+              echo "LOG DEL SERVIDOR PHP"
+              echo "=============================="
+
+              cat /tmp/php-server.log || true
+
+              exit 1
+
           fi
 
-      # --------------------------------------------------
-      # 12. Generar artefacto
-      # --------------------------------------------------
+
+
+      # ========================================
+      # ARTEFACTO
+      # ========================================
+
       - name: Generar artefacto
+
         run: |
-          echo "Generando ZIP del proyecto..."
 
           mkdir -p build
 
-          zip -r build/tiendaVideojuegos_mc.zip . \
+
+          zip -r \
+            build/tiendaVideojuegos_mc.zip \
+            . \
             -x ".git/*" \
             -x "build/*"
 
-          echo "Artefacto generado:"
+
+          echo "=============================="
+
+          echo "ARTEFACTO"
+
+          echo "=============================="
+
           ls -lh build/
 
-      # --------------------------------------------------
-      # 13. Subir artefacto a GitHub Actions
-      # --------------------------------------------------
+
+
+      # ========================================
+      # SUBIR ARTEFACTO
+      # ========================================
+
       - name: Subir artefacto
+
         uses: actions/upload-artifact@v4
+
         with:
+
           name: tiendaVideojuegos_mc
+
           path: build/tiendaVideojuegos_mc.zip
+
           if-no-files-found: error
+
           retention-days: 7
