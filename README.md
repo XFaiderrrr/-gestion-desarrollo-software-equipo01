@@ -322,3 +322,8 @@ El repositorio permitirá mantener un historial de cambios y facilitar la integr
 Desarrollar una aplicación web funcional para la venta y gestión de videojuegos utilizando una arquitectura de microservicios, aplicando buenas prácticas de desarrollo, control de versiones y separación de responsabilidades.
 
 El proyecto busca demostrar el funcionamiento de una aplicación distribuida mediante servicios independientes que puedan comunicarse entre sí para proporcionar las funcionalidades de la plataforma.
+
+
+## Integración Continua
+
+El proyecto utiliza GitHub Actions para validar automáticamente el código mediante compilación/validación, pruebas y generación de artefactos en cambios realizados mediante `push` y Pull Requests hacia `main`.
