@@ -2,14 +2,34 @@
 
 class Database
 {
-    private $host = "localhost";
-    private $dbName = "tienda_auth";
-    private $username = "root";
-    private $password = "12345678";
+    private $host;
+    private $dbName;
+    private $username;
+    private $password;
+
+    public function __construct()
+    {
+        /*
+         * En AppServ local:
+         *   DB_HOST     no existe  -> localhost
+         *   DB_NAME     no existe  -> tienda_auth
+         *   DB_USER     no existe  -> root
+         *   DB_PASSWORD no existe  -> ""
+         *
+         * En GitHub Actions:
+         *   Estas variables serán proporcionadas por ci.yml
+         */
+
+        $this->host = getenv("DB_HOST") ?: "localhost";
+        $this->dbName = getenv("DB_NAME") ?: "tienda_auth";
+        $this->username = getenv("DB_USER") ?: "root";
+        $this->password = getenv("DB_PASSWORD") ?: "";
+    }
 
     public function connect()
     {
         try {
+
             $connection = new PDO(
                 "mysql:host=" . $this->host .
                 ";dbname=" . $this->dbName .
