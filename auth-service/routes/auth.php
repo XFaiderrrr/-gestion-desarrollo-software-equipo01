@@ -2,6 +2,7 @@
 
 require_once "../config/database.php";
 require_once "../models/User.php";
+require_once "../models/Token.php";
 require_once "../controllers/AuthController.php";
 
 header(
@@ -30,6 +31,12 @@ if (!is_array($input)) {
 
 switch ($action) {
 
+    /*
+    |--------------------------------------------------------------------------
+    | REGISTER
+    |--------------------------------------------------------------------------
+    */
+
     case "register":
 
         if ($method !== "POST") {
@@ -52,6 +59,12 @@ switch ($action) {
         break;
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | LOGIN
+    |--------------------------------------------------------------------------
+    */
+
     case "login":
 
         if ($method !== "POST") {
@@ -73,6 +86,68 @@ switch ($action) {
 
         break;
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDATE
+    |--------------------------------------------------------------------------
+    */
+
+    case "validate":
+
+        if ($method !== "GET") {
+
+            http_response_code(405);
+
+            echo json_encode(
+                array(
+                    "success" => false,
+                    "message" => "Método no permitido"
+                ),
+                JSON_UNESCAPED_UNICODE
+            );
+
+            break;
+        }
+
+        $authController->validate();
+
+        break;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGOUT
+    |--------------------------------------------------------------------------
+    */
+
+    case "logout":
+
+        if ($method !== "POST") {
+
+            http_response_code(405);
+
+            echo json_encode(
+                array(
+                    "success" => false,
+                    "message" => "Método no permitido"
+                ),
+                JSON_UNESCAPED_UNICODE
+            );
+
+            break;
+        }
+
+        $authController->logout();
+
+        break;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ENDPOINT NO ENCONTRADO
+    |--------------------------------------------------------------------------
+    */
 
     default:
 
