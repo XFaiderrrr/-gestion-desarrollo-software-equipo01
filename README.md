@@ -327,3 +327,5 @@ El proyecto busca demostrar el funcionamiento de una aplicación distribuida med
 ## Integración Continua
 
 El proyecto utiliza GitHub Actions para validar automáticamente el código mediante compilación/validación, pruebas y generación de artefactos en cambios realizados mediante `push` y Pull Requests hacia `main`.
+
+....
