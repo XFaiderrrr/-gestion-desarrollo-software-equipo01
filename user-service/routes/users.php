@@ -2,6 +2,7 @@
 
 require_once "../config/database.php";
 require_once "../models/User.php";
+require_once "../services/AuthServiceClient.php";
 require_once "../controllers/UserController.php";
 require_once "../middleware/AdminMiddleware.php";
 
@@ -10,16 +11,22 @@ header(
 );
 
 $database = new Database();
+
 $db = $database->connect();
 
-$userController = new UserController($db);
-$adminMiddleware = new AdminMiddleware();
+$userController =
+    new UserController($db);
 
-$method = $_SERVER["REQUEST_METHOD"];
+$adminMiddleware =
+    new AdminMiddleware();
 
-$pathId = isset($_GET["id"])
-    ? $_GET["id"]
-    : null;
+$method =
+    $_SERVER["REQUEST_METHOD"];
+
+$pathId =
+    isset($_GET["id"])
+        ? $_GET["id"]
+        : null;
 
 $input = json_decode(
     file_get_contents("php://input"),
@@ -32,23 +39,18 @@ if (!is_array($input)) {
 
 /*
 |--------------------------------------------------------------------------
-| Todas las operaciones administrativas requieren ADMIN
+| Todas las operaciones requieren ADMIN
 |--------------------------------------------------------------------------
 */
 
-$admin = $adminMiddleware->authenticateAdmin();
+$admin =
+    $adminMiddleware->authenticateAdmin();
 
 if ($admin === false) {
     exit;
 }
 
 switch ($method) {
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET
-    |--------------------------------------------------------------------------
-    */
 
     case "GET":
 
@@ -58,17 +60,13 @@ switch ($method) {
 
         } else {
 
-            $userController->getById($pathId);
+            $userController->getById(
+                $pathId
+            );
         }
 
         break;
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | PUT
-    |--------------------------------------------------------------------------
-    */
 
     case "PUT":
 
@@ -79,7 +77,8 @@ switch ($method) {
             echo json_encode(
                 array(
                     "success" => false,
-                    "message" => "Debe proporcionar un ID"
+                    "message" =>
+                        "Debe proporcionar un ID"
                 ),
                 JSON_UNESCAPED_UNICODE
             );
@@ -95,12 +94,6 @@ switch ($method) {
         break;
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DELETE
-    |--------------------------------------------------------------------------
-    */
-
     case "DELETE":
 
         if ($pathId === null) {
@@ -110,7 +103,8 @@ switch ($method) {
             echo json_encode(
                 array(
                     "success" => false,
-                    "message" => "Debe proporcionar un ID"
+                    "message" =>
+                        "Debe proporcionar un ID"
                 ),
                 JSON_UNESCAPED_UNICODE
             );
@@ -132,7 +126,8 @@ switch ($method) {
         echo json_encode(
             array(
                 "success" => false,
-                "message" => "Método no permitido"
+                "message" =>
+                    "Método no permitido"
             ),
             JSON_UNESCAPED_UNICODE
         );

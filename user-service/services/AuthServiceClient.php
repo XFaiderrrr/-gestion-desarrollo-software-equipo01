@@ -1,6 +1,6 @@
 <?php
 
-class UserServiceClient
+class AuthServiceClient
 {
     private $baseUrl;
 
@@ -9,10 +9,10 @@ class UserServiceClient
         $this->baseUrl =
             "http://localhost/" .
             "-gestion-desarrollo-software-equipo01/" .
-            "user-service/public/internal.php";
+            "auth-service/public/internal.php";
     }
 
-    public function syncUser(
+    public function updateUser(
         $authUserId,
         $nombre,
         $email,
@@ -26,7 +26,7 @@ class UserServiceClient
         );
 
         return $this->request(
-            "",
+            "?action=update-user",
             $data
         );
     }
@@ -38,7 +38,7 @@ class UserServiceClient
         );
 
         return $this->request(
-            "?action=delete",
+            "?action=delete-user",
             $data
         );
     }

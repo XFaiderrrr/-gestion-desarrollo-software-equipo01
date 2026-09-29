@@ -2,7 +2,9 @@
 
 require_once "../config/database.php";
 require_once "../models/User.php";
-require_once "../controllers/SyncController.php";
+require_once "../models/Token.php";
+require_once "../services/UserServiceClient.php";
+require_once "../controllers/AuthController.php";
 
 header(
     "Content-Type: application/json; charset=UTF-8"
@@ -38,11 +40,10 @@ if (
 }
 
 $database = new Database();
-
 $db = $database->connect();
 
-$syncController =
-    new SyncController($db);
+$authController =
+    new AuthController($db);
 
 $method = $_SERVER["REQUEST_METHOD"];
 
@@ -53,8 +54,7 @@ if ($method !== "POST") {
     echo json_encode(
         array(
             "success" => false,
-            "message" =>
-                "Método no permitido"
+            "message" => "Método no permitido"
         ),
         JSON_UNESCAPED_UNICODE
     );
@@ -64,7 +64,7 @@ if ($method !== "POST") {
 
 $action = isset($_GET["action"])
     ? $_GET["action"]
-    : "sync";
+    : "";
 
 $input = json_decode(
     file_get_contents("php://input"),
@@ -77,15 +77,19 @@ if (!is_array($input)) {
 
 switch ($action) {
 
-    case "sync":
+    case "update-user":
 
-        $syncController->sync($input);
+        $authController->updateFromUserService(
+            $input
+        );
 
         break;
 
-    case "delete":
+    case "delete-user":
 
-        $syncController->delete($input);
+        $authController->deleteFromUserService(
+            $input
+        );
 
         break;
 
@@ -96,8 +100,7 @@ switch ($action) {
         echo json_encode(
             array(
                 "success" => false,
-                "message" =>
-                    "Acción interna no encontrada"
+                "message" => "Acción interna no encontrada"
             ),
             JSON_UNESCAPED_UNICODE
         );

@@ -110,4 +110,39 @@ class User
 
         return $this->db->lastInsertId();
     }
+
+    public function update($id, $nombre, $email, $rol)
+    {
+        $sql = "
+            UPDATE users
+            SET
+                nombre = :nombre,
+                email = :email,
+                rol = :rol
+            WHERE id = :id
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute(array(
+            ":id" => $id,
+            ":nombre" => $nombre,
+            ":email" => $email,
+            ":rol" => $rol
+        ));
+    }
+
+    public function delete($id)
+    {
+        $sql = "
+            DELETE FROM users
+            WHERE id = :id
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute(array(
+            ":id" => $id
+        ));
+    }
 }

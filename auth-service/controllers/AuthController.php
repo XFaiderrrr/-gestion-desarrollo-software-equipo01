@@ -63,7 +63,8 @@ class AuthController
                     400,
                     array(
                         "success" => false,
-                        "message" => "El correo electrónico no es válido"
+                        "message" =>
+                            "El correo electrónico no es válido"
                     )
                 );
 
@@ -76,7 +77,8 @@ class AuthController
                     400,
                     array(
                         "success" => false,
-                        "message" => "La contraseña debe tener al menos 6 caracteres"
+                        "message" =>
+                            "La contraseña debe tener al menos 6 caracteres"
                     )
                 );
 
@@ -96,10 +98,6 @@ class AuthController
                 return;
             }
 
-            /*
-             * Crear usuario en auth-service
-             */
-
             $createdUserId = $this->userModel->create(
                 $nombre,
                 $email,
@@ -112,23 +110,21 @@ class AuthController
                     500,
                     array(
                         "success" => false,
-                        "message" => "No fue posible registrar al usuario"
+                        "message" =>
+                            "No fue posible registrar al usuario"
                     )
                 );
 
                 return;
             }
 
-            /*
-             * Sincronizar con user-service
-             */
-
-            $syncResult = $this->userServiceClient->syncUser(
-                $createdUserId,
-                $nombre,
-                $email,
-                "usuario"
-            );
+            $syncResult =
+                $this->userServiceClient->syncUser(
+                    $createdUserId,
+                    $nombre,
+                    $email,
+                    "usuario"
+                );
 
             if (!$syncResult) {
 
@@ -138,7 +134,8 @@ class AuthController
                         "success" => false,
                         "message" =>
                             "Usuario creado en auth-service, " .
-                            "pero no fue posible sincronizar con user-service"
+                            "pero no fue posible sincronizar " .
+                            "con user-service"
                     )
                 );
 
@@ -229,10 +226,6 @@ class AuthController
                 return;
             }
 
-            /*
-             * Generar token
-             */
-
             $token = $this->tokenModel->create(
                 $user["id"]
             );
@@ -288,8 +281,10 @@ class AuthController
                 return;
             }
 
-            $tokenData = $this->tokenModel
-                ->findValidToken($token);
+            $tokenData =
+                $this->tokenModel->findValidToken(
+                    $token
+                );
 
             if (!$tokenData) {
 
@@ -297,7 +292,8 @@ class AuthController
                     401,
                     array(
                         "success" => false,
-                        "message" => "Token inválido o expirado"
+                        "message" =>
+                            "Token inválido o expirado"
                     )
                 );
 
@@ -314,7 +310,8 @@ class AuthController
                     404,
                     array(
                         "success" => false,
-                        "message" => "Usuario no encontrado"
+                        "message" =>
+                            "Usuario no encontrado"
                     )
                 );
 
@@ -392,17 +389,293 @@ class AuthController
 
     /*
     |--------------------------------------------------------------------------
-    | OBTENER TOKEN BEARER
+    | ACTUALIZAR USUARIO INTERNAMENTE
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateFromUserService($data)
+    {
+        try {
+
+            $id = isset($data["auth_user_id"])
+                ? $data["auth_user_id"]
+                : null;
+
+            $nombre = isset($data["nombre"])
+                ? trim($data["nombre"])
+                : "";
+
+            $email = isset($data["email"])
+                ? trim($data["email"])
+                : "";
+
+            $rol = isset($data["rol"])
+                ? trim($data["rol"])
+                : "";
+
+            if (
+                $id === null ||
+                $nombre === "" ||
+                $email === "" ||
+                $rol === ""
+            ) {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "auth_user_id, nombre, email y rol son obligatorios"
+                    )
+                );
+
+                return;
+            }
+
+            if (!is_numeric($id)) {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" => "auth_user_id inválido"
+                    )
+                );
+
+                return;
+            }
+
+            if (!filter_var(
+                $email,
+                FILTER_VALIDATE_EMAIL
+            )) {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "Correo electrónico inválido"
+                    )
+                );
+
+                return;
+            }
+
+            if (
+                $rol !== "usuario" &&
+                $rol !== "admin"
+            ) {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" => "Rol inválido"
+                    )
+                );
+
+                return;
+            }
+
+            $user = $this->userModel->findById(
+                (int) $id
+            );
+
+            if (!$user) {
+
+                $this->response(
+                    404,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "Usuario no encontrado"
+                    )
+                );
+
+                return;
+            }
+
+            $updated = $this->userModel->update(
+                (int) $id,
+                $nombre,
+                $email,
+                $rol
+            );
+
+            if (!$updated) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "No fue posible actualizar el usuario"
+                    )
+                );
+
+                return;
+            }
+
+            /*
+             * Sincronizar nuevamente con user-service
+             */
+
+            $syncResult =
+                $this->userServiceClient->syncUser(
+                    $id,
+                    $nombre,
+                    $email,
+                    $rol
+                );
+
+            if (!$syncResult) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "Usuario actualizado en auth-service, " .
+                            "pero no fue posible sincronizar " .
+                            "con user-service"
+                    )
+                );
+
+                return;
+            }
+
+            $this->response(
+                200,
+                array(
+                    "success" => true,
+                    "message" =>
+                        "Usuario actualizado y sincronizado correctamente"
+                )
+            );
+
+        } catch (PDOException $e) {
+
+            $this->databaseError($e);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ELIMINAR USUARIO INTERNAMENTE
+    |--------------------------------------------------------------------------
+    */
+
+    public function deleteFromUserService($data)
+    {
+        try {
+
+            $id = isset($data["auth_user_id"])
+                ? $data["auth_user_id"]
+                : null;
+
+            if (
+                $id === null ||
+                !is_numeric($id)
+            ) {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "auth_user_id inválido"
+                    )
+                );
+
+                return;
+            }
+
+            $user = $this->userModel->findById(
+                (int) $id
+            );
+
+            if (!$user) {
+
+                $this->response(
+                    404,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "Usuario no encontrado"
+                    )
+                );
+
+                return;
+            }
+
+            $deleted = $this->userModel->delete(
+                (int) $id
+            );
+
+            if (!$deleted) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "No fue posible eliminar al usuario"
+                    )
+                );
+
+                return;
+            }
+
+            /*
+             * Eliminar la copia en user-service
+             */
+
+            $syncResult =
+                $this->userServiceClient->deleteUser(
+                    $id
+                );
+
+            if (!$syncResult) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "Usuario eliminado de auth-service, " .
+                            "pero no fue posible sincronizar " .
+                            "la eliminación con user-service"
+                    )
+                );
+
+                return;
+            }
+
+            $this->response(
+                200,
+                array(
+                    "success" => true,
+                    "message" =>
+                        "Usuario eliminado y sincronizado correctamente"
+                )
+            );
+
+        } catch (PDOException $e) {
+
+            $this->databaseError($e);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TOKEN BEARER
     |--------------------------------------------------------------------------
     */
 
     private function getBearerToken()
     {
         $authorization = "";
-
-        /*
-         * Apache / AppServ
-         */
 
         if (function_exists("getallheaders")) {
 
@@ -419,10 +692,6 @@ class AuthController
             }
         }
 
-        /*
-         * Respaldo
-         */
-
         if (
             $authorization === "" &&
             isset($_SERVER["HTTP_AUTHORIZATION"])
@@ -431,10 +700,6 @@ class AuthController
             $authorization =
                 $_SERVER["HTTP_AUTHORIZATION"];
         }
-
-        /*
-         * Validar existencia
-         */
 
         if ($authorization === "") {
 
@@ -449,10 +714,6 @@ class AuthController
             return false;
         }
 
-        /*
-         * Validar formato
-         */
-
         if (
             strpos(
                 strtoupper($authorization),
@@ -464,7 +725,8 @@ class AuthController
                 401,
                 array(
                     "success" => false,
-                    "message" => "Formato de token inválido"
+                    "message" =>
+                        "Formato de token inválido"
                 )
             );
 
@@ -493,7 +755,7 @@ class AuthController
 
     /*
     |--------------------------------------------------------------------------
-    | ERROR DE BASE DE DATOS
+    | ERROR BD
     |--------------------------------------------------------------------------
     */
 
@@ -503,7 +765,8 @@ class AuthController
 
         $response = array(
             "success" => false,
-            "message" => "Error al acceder a la base de datos"
+            "message" =>
+                "Error al acceder a la base de datos"
         );
 
         if (getenv("DB_DEBUG") === "true") {
@@ -519,7 +782,7 @@ class AuthController
 
     /*
     |--------------------------------------------------------------------------
-    | RESPUESTA GENERAL
+    | RESPUESTA
     |--------------------------------------------------------------------------
     */
 

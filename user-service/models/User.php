@@ -25,6 +25,7 @@ class User
         ";
 
         $stmt = $this->db->prepare($sql);
+
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -155,75 +156,58 @@ class User
             ":id" => $id
         ));
     }
+
     public function syncFromAuth(
-    $authUserId,
-    $nombre,
-    $email,
-    $rol
-) {
-    $existingUser = $this->findByAuthUserId(
-        $authUserId
-    );
+        $authUserId,
+        $nombre,
+        $email,
+        $rol
+    ) {
+        $existingUser =
+            $this->findByAuthUserId(
+                $authUserId
+            );
 
-    if ($existingUser) {
+        if ($existingUser) {
 
+            $sql = "
+                UPDATE users
+                SET
+                    nombre = :nombre,
+                    email = :email,
+                    rol = :rol
+                WHERE auth_user_id = :auth_user_id
+            ";
+
+            $stmt = $this->db->prepare($sql);
+
+            return $stmt->execute(array(
+                ":nombre" => $nombre,
+                ":email" => $email,
+                ":rol" => $rol,
+                ":auth_user_id" => $authUserId
+            ));
+        }
+
+        return $this->create(
+            $authUserId,
+            $nombre,
+            $email,
+            $rol
+        );
+    }
+
+    public function deleteByAuthUserId($authUserId)
+    {
         $sql = "
-            UPDATE users
-            SET
-                nombre = :nombre,
-                email = :email,
-                rol = :rol
+            DELETE FROM users
             WHERE auth_user_id = :auth_user_id
         ";
 
         $stmt = $this->db->prepare($sql);
 
         return $stmt->execute(array(
-            ":nombre" => $nombre,
-            ":email" => $email,
-            ":rol" => $rol,
             ":auth_user_id" => $authUserId
         ));
     }
-
-    $sql = "
-        INSERT INTO users
-        (
-            auth_user_id,
-            nombre,
-            email,
-            rol
-        )
-        VALUES
-        (
-            :auth_user_id,
-            :nombre,
-            :email,
-            :rol
-        )
-    ";
-
-    $stmt = $this->db->prepare($sql);
-
-    return $stmt->execute(array(
-        ":auth_user_id" => $authUserId,
-        ":nombre" => $nombre,
-        ":email" => $email,
-        ":rol" => $rol
-    ));
-}
-
-public function deleteByAuthUserId($authUserId)
-{
-    $sql = "
-        DELETE FROM users
-        WHERE auth_user_id = :auth_user_id
-    ";
-
-    $stmt = $this->db->prepare($sql);
-
-    return $stmt->execute(array(
-        ":auth_user_id" => $authUserId
-    ));
-}
 }

@@ -6,28 +6,33 @@ class SyncController
 
     public function __construct($db)
     {
-        $this->userModel = new User($db);
+        $this->userModel =
+            new User($db);
     }
 
     public function sync($data)
     {
         try {
 
-            $authUserId = isset($data["auth_user_id"])
-                ? $data["auth_user_id"]
-                : null;
+            $authUserId =
+                isset($data["auth_user_id"])
+                    ? $data["auth_user_id"]
+                    : null;
 
-            $nombre = isset($data["nombre"])
-                ? trim($data["nombre"])
-                : "";
+            $nombre =
+                isset($data["nombre"])
+                    ? trim($data["nombre"])
+                    : "";
 
-            $email = isset($data["email"])
-                ? trim($data["email"])
-                : "";
+            $email =
+                isset($data["email"])
+                    ? trim($data["email"])
+                    : "";
 
-            $rol = isset($data["rol"])
-                ? trim($data["rol"])
-                : "";
+            $rol =
+                isset($data["rol"])
+                    ? trim($data["rol"])
+                    : "";
 
             if (
                 $authUserId === null ||
@@ -40,7 +45,8 @@ class SyncController
                     400,
                     array(
                         "success" => false,
-                        "message" => "auth_user_id, nombre, email y rol son obligatorios"
+                        "message" =>
+                            "auth_user_id, nombre, email y rol son obligatorios"
                     )
                 );
 
@@ -53,7 +59,8 @@ class SyncController
                     400,
                     array(
                         "success" => false,
-                        "message" => "auth_user_id inválido"
+                        "message" =>
+                            "auth_user_id inválido"
                     )
                 );
 
@@ -69,7 +76,8 @@ class SyncController
                     400,
                     array(
                         "success" => false,
-                        "message" => "Correo electrónico inválido"
+                        "message" =>
+                            "Correo electrónico inválido"
                     )
                 );
 
@@ -85,19 +93,21 @@ class SyncController
                     400,
                     array(
                         "success" => false,
-                        "message" => "Rol inválido"
+                        "message" =>
+                            "Rol inválido"
                     )
                 );
 
                 return;
             }
 
-            $synced = $this->userModel->syncFromAuth(
-                (int) $authUserId,
-                $nombre,
-                $email,
-                $rol
-            );
+            $synced =
+                $this->userModel->syncFromAuth(
+                    (int) $authUserId,
+                    $nombre,
+                    $email,
+                    $rol
+                );
 
             if (!$synced) {
 
@@ -105,7 +115,8 @@ class SyncController
                     500,
                     array(
                         "success" => false,
-                        "message" => "No fue posible sincronizar el usuario"
+                        "message" =>
+                            "No fue posible sincronizar el usuario"
                     )
                 );
 
@@ -116,7 +127,8 @@ class SyncController
                 200,
                 array(
                     "success" => true,
-                    "message" => "Usuario sincronizado correctamente"
+                    "message" =>
+                        "Usuario sincronizado correctamente"
                 )
             );
 
@@ -126,10 +138,76 @@ class SyncController
                 500,
                 array(
                     "success" => false,
-                    "message" => "Error al sincronizar usuario",
-                    "debug" => getenv("DB_DEBUG") === "true"
-                        ? $e->getMessage()
-                        : null
+                    "message" =>
+                        "Error al sincronizar usuario"
+                )
+            );
+        }
+    }
+
+    public function delete($data)
+    {
+        try {
+
+            $authUserId =
+                isset($data["auth_user_id"])
+                    ? $data["auth_user_id"]
+                    : null;
+
+            if (
+                $authUserId === null ||
+                !is_numeric($authUserId)
+            ) {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "auth_user_id inválido"
+                    )
+                );
+
+                return;
+            }
+
+            $deleted =
+                $this->userModel
+                    ->deleteByAuthUserId(
+                        (int) $authUserId
+                    );
+
+            if (!$deleted) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "No fue posible eliminar el usuario sincronizado"
+                    )
+                );
+
+                return;
+            }
+
+            $this->response(
+                200,
+                array(
+                    "success" => true,
+                    "message" =>
+                        "Usuario eliminado de user-service"
+                )
+            );
+
+        } catch (PDOException $e) {
+
+            $this->response(
+                500,
+                array(
+                    "success" => false,
+                    "message" =>
+                        "Error al eliminar usuario"
                 )
             );
         }

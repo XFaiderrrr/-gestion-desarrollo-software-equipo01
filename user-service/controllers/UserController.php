@@ -3,10 +3,14 @@
 class UserController
 {
     private $userModel;
+    private $authServiceClient;
 
     public function __construct($db)
     {
         $this->userModel = new User($db);
+
+        $this->authServiceClient =
+            new AuthServiceClient();
     }
 
     public function getAll()
@@ -29,10 +33,8 @@ class UserController
                 500,
                 array(
                     "success" => false,
-                    "message" => "Error al consultar usuarios",
-                    "debug" => getenv("DB_DEBUG") === "true"
-                        ? $e->getMessage()
-                        : null
+                    "message" =>
+                        "Error al consultar usuarios"
                 )
             );
         }
@@ -48,16 +50,18 @@ class UserController
                     400,
                     array(
                         "success" => false,
-                        "message" => "ID de usuario inválido"
+                        "message" =>
+                            "ID de usuario inválido"
                     )
                 );
 
                 return;
             }
 
-            $user = $this->userModel->findById(
-                (int) $id
-            );
+            $user =
+                $this->userModel->findById(
+                    (int) $id
+                );
 
             if (!$user) {
 
@@ -65,7 +69,8 @@ class UserController
                     404,
                     array(
                         "success" => false,
-                        "message" => "Usuario no encontrado"
+                        "message" =>
+                            "Usuario no encontrado"
                     )
                 );
 
@@ -96,24 +101,47 @@ class UserController
                     400,
                     array(
                         "success" => false,
-                        "message" => "ID de usuario inválido"
+                        "message" =>
+                            "ID de usuario inválido"
                     )
                 );
 
                 return;
             }
 
-            $nombre = isset($data["nombre"])
-                ? trim($data["nombre"])
-                : "";
+            $user =
+                $this->userModel->findById(
+                    (int) $id
+                );
 
-            $email = isset($data["email"])
-                ? trim($data["email"])
-                : "";
+            if (!$user) {
 
-            $rol = isset($data["rol"])
-                ? trim($data["rol"])
-                : "";
+                $this->response(
+                    404,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "Usuario no encontrado"
+                    )
+                );
+
+                return;
+            }
+
+            $nombre =
+                isset($data["nombre"])
+                    ? trim($data["nombre"])
+                    : "";
+
+            $email =
+                isset($data["email"])
+                    ? trim($data["email"])
+                    : "";
+
+            $rol =
+                isset($data["rol"])
+                    ? trim($data["rol"])
+                    : "";
 
             if (
                 $nombre === "" ||
@@ -125,7 +153,8 @@ class UserController
                     400,
                     array(
                         "success" => false,
-                        "message" => "nombre, email y rol son obligatorios"
+                        "message" =>
+                            "nombre, email y rol son obligatorios"
                     )
                 );
 
@@ -141,7 +170,8 @@ class UserController
                     400,
                     array(
                         "success" => false,
-                        "message" => "Correo electrónico inválido"
+                        "message" =>
+                            "Correo electrónico inválido"
                     )
                 );
 
@@ -157,55 +187,51 @@ class UserController
                     400,
                     array(
                         "success" => false,
-                        "message" => "Rol inválido"
+                        "message" =>
+                            "Rol inválido"
                     )
                 );
 
                 return;
             }
 
-            $user = $this->userModel->findById(
-                (int) $id
-            );
+            /*
+             * El cambio real lo hace auth-service.
+             */
 
-            if (!$user) {
-
-                $this->response(
-                    404,
-                    array(
-                        "success" => false,
-                        "message" => "Usuario no encontrado"
-                    )
+            $updated =
+                $this->authServiceClient->updateUser(
+                    $user["auth_user_id"],
+                    $nombre,
+                    $email,
+                    $rol
                 );
-
-                return;
-            }
-
-            $updated = $this->userModel->update(
-                (int) $id,
-                $nombre,
-                $email,
-                $rol
-            );
 
             if (!$updated) {
 
                 $this->response(
-                    500,
+                    503,
                     array(
                         "success" => false,
-                        "message" => "No fue posible actualizar el usuario"
+                        "message" =>
+                            "No fue posible actualizar el usuario en auth-service"
                     )
                 );
 
                 return;
             }
+
+            /*
+             * auth-service sincroniza
+             * automáticamente la copia local.
+             */
 
             $this->response(
                 200,
                 array(
                     "success" => true,
-                    "message" => "Usuario actualizado correctamente"
+                    "message" =>
+                        "Usuario actualizado y sincronizado correctamente"
                 )
             );
 
@@ -225,16 +251,18 @@ class UserController
                     400,
                     array(
                         "success" => false,
-                        "message" => "ID de usuario inválido"
+                        "message" =>
+                            "ID de usuario inválido"
                     )
                 );
 
                 return;
             }
 
-            $user = $this->userModel->findById(
-                (int) $id
-            );
+            $user =
+                $this->userModel->findById(
+                    (int) $id
+                );
 
             if (!$user) {
 
@@ -242,24 +270,31 @@ class UserController
                     404,
                     array(
                         "success" => false,
-                        "message" => "Usuario no encontrado"
+                        "message" =>
+                            "Usuario no encontrado"
                     )
                 );
 
                 return;
             }
 
-            $deleted = $this->userModel->delete(
-                (int) $id
-            );
+            /*
+             * El borrado real lo hace auth-service.
+             */
+
+            $deleted =
+                $this->authServiceClient->deleteUser(
+                    $user["auth_user_id"]
+                );
 
             if (!$deleted) {
 
                 $this->response(
-                    500,
+                    503,
                     array(
                         "success" => false,
-                        "message" => "No fue posible eliminar el usuario"
+                        "message" =>
+                            "No fue posible eliminar el usuario en auth-service"
                     )
                 );
 
@@ -270,7 +305,8 @@ class UserController
                 200,
                 array(
                     "success" => true,
-                    "message" => "Usuario eliminado correctamente"
+                    "message" =>
+                        "Usuario eliminado y sincronizado correctamente"
                 )
             );
 
@@ -286,10 +322,12 @@ class UserController
 
         $response = array(
             "success" => false,
-            "message" => "Error al acceder a la base de datos"
+            "message" =>
+                "Error al acceder a la base de datos"
         );
 
         if (getenv("DB_DEBUG") === "true") {
+
             $response["debug"] = $e->getMessage();
         }
 
