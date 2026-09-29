@@ -3,6 +3,7 @@
 require_once "../config/database.php";
 require_once "../models/User.php";
 require_once "../models/Token.php";
+require_once "../services/UserServiceClient.php";
 require_once "../controllers/AuthController.php";
 
 header(
@@ -10,6 +11,7 @@ header(
 );
 
 $database = new Database();
+
 $db = $database->connect();
 
 $authController = new AuthController($db);

@@ -98,10 +98,16 @@ class User
 
         $stmt = $this->db->prepare($sql);
 
-        return $stmt->execute(array(
+        $result = $stmt->execute(array(
             ":nombre" => $nombre,
             ":email" => $email,
             ":password" => $hashedPassword
         ));
+
+        if (!$result) {
+            return false;
+        }
+
+        return $this->db->lastInsertId();
     }
 }

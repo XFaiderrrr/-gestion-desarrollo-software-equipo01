@@ -5,6 +5,7 @@ class AuthController
     private $db;
     private $userModel;
     private $tokenModel;
+    private $userServiceClient;
 
     public function __construct($db)
     {
@@ -12,6 +13,9 @@ class AuthController
 
         $this->userModel = new User($db);
         $this->tokenModel = new Token($db);
+
+        $this->userServiceClient =
+            new UserServiceClient();
     }
 
     /*
@@ -92,13 +96,17 @@ class AuthController
                 return;
             }
 
-            $created = $this->userModel->create(
+            /*
+             * Crear usuario en auth-service
+             */
+
+            $createdUserId = $this->userModel->create(
                 $nombre,
                 $email,
                 $password
             );
 
-            if (!$created) {
+            if (!$createdUserId) {
 
                 $this->response(
                     500,
@@ -111,11 +119,39 @@ class AuthController
                 return;
             }
 
+            /*
+             * Sincronizar con user-service
+             */
+
+            $syncResult = $this->userServiceClient->syncUser(
+                $createdUserId,
+                $nombre,
+                $email,
+                "usuario"
+            );
+
+            if (!$syncResult) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "Usuario creado en auth-service, " .
+                            "pero no fue posible sincronizar con user-service"
+                    )
+                );
+
+                return;
+            }
+
             $this->response(
                 201,
                 array(
                     "success" => true,
-                    "message" => "Usuario registrado correctamente"
+                    "message" =>
+                        "Usuario registrado y sincronizado correctamente",
+                    "user_id" => $createdUserId
                 )
             );
 
@@ -152,14 +188,17 @@ class AuthController
                     400,
                     array(
                         "success" => false,
-                        "message" => "Correo y contraseña son obligatorios"
+                        "message" =>
+                            "Correo y contraseña son obligatorios"
                     )
                 );
 
                 return;
             }
 
-            $user = $this->userModel->findByEmail($email);
+            $user = $this->userModel->findByEmail(
+                $email
+            );
 
             if (!$user) {
 
@@ -204,7 +243,8 @@ class AuthController
                     500,
                     array(
                         "success" => false,
-                        "message" => "No fue posible generar el token"
+                        "message" =>
+                            "No fue posible generar el token"
                     )
                 );
 
@@ -245,7 +285,6 @@ class AuthController
             $token = $this->getBearerToken();
 
             if ($token === false) {
-
                 return;
             }
 
@@ -315,7 +354,6 @@ class AuthController
             $token = $this->getBearerToken();
 
             if ($token === false) {
-
                 return;
             }
 
@@ -329,7 +367,8 @@ class AuthController
                     500,
                     array(
                         "success" => false,
-                        "message" => "No fue posible cerrar la sesión"
+                        "message" =>
+                            "No fue posible cerrar la sesión"
                     )
                 );
 
@@ -340,7 +379,8 @@ class AuthController
                 200,
                 array(
                     "success" => true,
-                    "message" => "Sesión cerrada correctamente"
+                    "message" =>
+                        "Sesión cerrada correctamente"
                 )
             );
 
@@ -373,14 +413,14 @@ class AuthController
                 if (strtolower($key) === "authorization") {
 
                     $authorization = $value;
+
                     break;
                 }
             }
         }
 
         /*
-         * Respaldo para servidores donde Authorization
-         * no llega mediante getallheaders()
+         * Respaldo
          */
 
         if (
@@ -410,7 +450,7 @@ class AuthController
         }
 
         /*
-         * Validar formato Bearer
+         * Validar formato
          */
 
         if (
@@ -453,7 +493,7 @@ class AuthController
 
     /*
     |--------------------------------------------------------------------------
-    | RESPUESTA DE ERROR DE BASE DE DATOS
+    | ERROR DE BASE DE DATOS
     |--------------------------------------------------------------------------
     */
 
