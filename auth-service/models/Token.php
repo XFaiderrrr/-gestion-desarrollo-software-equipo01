@@ -18,16 +18,30 @@ class Token
             time() + (60 * 60 * 24)
         );
 
-        $sql = "INSERT INTO tokens (user_id, token, expires_at)
-                VALUES (:user_id, :token, :expires_at)";
+        $sql = "
+            INSERT INTO tokens
+            (
+                user_id,
+                token,
+                expires_at
+            )
+            VALUES
+            (
+                :user_id,
+                :token,
+                :expires_at
+            )
+        ";
 
         $stmt = $this->db->prepare($sql);
 
-        $stmt->bindParam(":user_id", $userId);
-        $stmt->bindParam(":token", $token);
-        $stmt->bindParam(":expires_at", $expiresAt);
+        $result = $stmt->execute(array(
+            ":user_id" => $userId,
+            ":token" => $token,
+            ":expires_at" => $expiresAt
+        ));
 
-        if ($stmt->execute()) {
+        if ($result) {
             return $token;
         }
 
@@ -36,27 +50,41 @@ class Token
 
     public function findValidToken($token)
     {
-        $sql = "SELECT *
-                FROM tokens
-                WHERE token = :token
-                AND expires_at > NOW()
-                LIMIT 1";
+        $sql = "
+            SELECT
+                id,
+                user_id,
+                token,
+                expires_at,
+                created_at
+            FROM tokens
+            WHERE token = :token
+            AND expires_at > NOW()
+            LIMIT 1
+        ";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(":token", $token);
-        $stmt->execute();
 
-        return $stmt->fetch();
+        $stmt->execute(array(
+            ":token" => $token
+        ));
+
+        $tokenData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $tokenData ? $tokenData : null;
     }
 
     public function delete($token)
     {
-        $sql = "DELETE FROM tokens
-                WHERE token = :token";
+        $sql = "
+            DELETE FROM tokens
+            WHERE token = :token
+        ";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(":token", $token);
 
-        return $stmt->execute();
+        return $stmt->execute(array(
+            ":token" => $token
+        ));
     }
 }

@@ -4,12 +4,21 @@ class AuthController
 {
     private $db;
     private $userModel;
+    private $tokenModel;
 
     public function __construct($db)
     {
         $this->db = $db;
+
         $this->userModel = new User($db);
+        $this->tokenModel = new Token($db);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | REGISTRO
+    |--------------------------------------------------------------------------
+    */
 
     public function register($data)
     {
@@ -27,7 +36,11 @@ class AuthController
                 ? $data["password"]
                 : "";
 
-            if ($nombre === "" || $email === "" || $password === "") {
+            if (
+                $nombre === "" ||
+                $email === "" ||
+                $password === ""
+            ) {
 
                 $this->response(
                     400,
@@ -112,6 +125,12 @@ class AuthController
         }
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | LOGIN
+    |--------------------------------------------------------------------------
+    */
+
     public function login($data)
     {
         try {
@@ -124,7 +143,10 @@ class AuthController
                 ? $data["password"]
                 : "";
 
-            if ($email === "" || $password === "") {
+            if (
+                $email === "" ||
+                $password === ""
+            ) {
 
                 $this->response(
                     400,
@@ -152,7 +174,10 @@ class AuthController
                 return;
             }
 
-            if (!password_verify($password, $user["password"])) {
+            if (!password_verify(
+                $password,
+                $user["password"]
+            )) {
 
                 $this->response(
                     401,
@@ -165,11 +190,33 @@ class AuthController
                 return;
             }
 
+            /*
+             * Generar token
+             */
+
+            $token = $this->tokenModel->create(
+                $user["id"]
+            );
+
+            if (!$token) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" => "No fue posible generar el token"
+                    )
+                );
+
+                return;
+            }
+
             $this->response(
                 200,
                 array(
                     "success" => true,
                     "message" => "Login exitoso",
+                    "token" => $token,
                     "user" => array(
                         "id" => $user["id"],
                         "nombre" => $user["nombre"],
@@ -184,6 +231,231 @@ class AuthController
             $this->databaseError($e);
         }
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDAR TOKEN
+    |--------------------------------------------------------------------------
+    */
+
+    public function validate()
+    {
+        try {
+
+            $token = $this->getBearerToken();
+
+            if ($token === false) {
+
+                return;
+            }
+
+            $tokenData = $this->tokenModel
+                ->findValidToken($token);
+
+            if (!$tokenData) {
+
+                $this->response(
+                    401,
+                    array(
+                        "success" => false,
+                        "message" => "Token inválido o expirado"
+                    )
+                );
+
+                return;
+            }
+
+            $user = $this->userModel->findById(
+                $tokenData["user_id"]
+            );
+
+            if (!$user) {
+
+                $this->response(
+                    404,
+                    array(
+                        "success" => false,
+                        "message" => "Usuario no encontrado"
+                    )
+                );
+
+                return;
+            }
+
+            $this->response(
+                200,
+                array(
+                    "success" => true,
+                    "message" => "Token válido",
+                    "user" => array(
+                        "id" => $user["id"],
+                        "nombre" => $user["nombre"],
+                        "email" => $user["email"],
+                        "rol" => $user["rol"]
+                    )
+                )
+            );
+
+        } catch (PDOException $e) {
+
+            $this->databaseError($e);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGOUT
+    |--------------------------------------------------------------------------
+    */
+
+    public function logout()
+    {
+        try {
+
+            $token = $this->getBearerToken();
+
+            if ($token === false) {
+
+                return;
+            }
+
+            $deleted = $this->tokenModel->delete(
+                $token
+            );
+
+            if (!$deleted) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" => "No fue posible cerrar la sesión"
+                    )
+                );
+
+                return;
+            }
+
+            $this->response(
+                200,
+                array(
+                    "success" => true,
+                    "message" => "Sesión cerrada correctamente"
+                )
+            );
+
+        } catch (PDOException $e) {
+
+            $this->databaseError($e);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | OBTENER TOKEN BEARER
+    |--------------------------------------------------------------------------
+    */
+
+    private function getBearerToken()
+    {
+        $authorization = "";
+
+        /*
+         * Apache / AppServ
+         */
+
+        if (function_exists("getallheaders")) {
+
+            $headers = getallheaders();
+
+            foreach ($headers as $key => $value) {
+
+                if (strtolower($key) === "authorization") {
+
+                    $authorization = $value;
+                    break;
+                }
+            }
+        }
+
+        /*
+         * Respaldo para servidores donde Authorization
+         * no llega mediante getallheaders()
+         */
+
+        if (
+            $authorization === "" &&
+            isset($_SERVER["HTTP_AUTHORIZATION"])
+        ) {
+
+            $authorization =
+                $_SERVER["HTTP_AUTHORIZATION"];
+        }
+
+        /*
+         * Validar existencia
+         */
+
+        if ($authorization === "") {
+
+            $this->response(
+                401,
+                array(
+                    "success" => false,
+                    "message" => "Token no proporcionado"
+                )
+            );
+
+            return false;
+        }
+
+        /*
+         * Validar formato Bearer
+         */
+
+        if (
+            strpos(
+                strtoupper($authorization),
+                "BEARER "
+            ) !== 0
+        ) {
+
+            $this->response(
+                401,
+                array(
+                    "success" => false,
+                    "message" => "Formato de token inválido"
+                )
+            );
+
+            return false;
+        }
+
+        $token = trim(
+            substr($authorization, 7)
+        );
+
+        if ($token === "") {
+
+            $this->response(
+                401,
+                array(
+                    "success" => false,
+                    "message" => "Token vacío"
+                )
+            );
+
+            return false;
+        }
+
+        return $token;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RESPUESTA DE ERROR DE BASE DE DATOS
+    |--------------------------------------------------------------------------
+    */
 
     private function databaseError($e)
     {
@@ -205,9 +477,19 @@ class AuthController
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | RESPUESTA GENERAL
+    |--------------------------------------------------------------------------
+    */
+
     private function response($status, $data)
     {
         http_response_code($status);
+
+        header(
+            "Content-Type: application/json; charset=UTF-8"
+        );
 
         echo json_encode(
             $data,
