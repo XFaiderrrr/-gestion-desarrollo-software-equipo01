@@ -265,7 +265,7 @@ footer {
     }
 }
 
-/*LOGIN*/
+
 /* =========================
    AUTH
 ========================= */
@@ -281,10 +281,16 @@ footer {
 
     background:
         radial-gradient(
-            circle at center,
-            #172554 0%,
-            #0f172a 60%
-        );
+            circle at top left,
+            rgba(37, 99, 235, 0.18),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at bottom right,
+            rgba(79, 70, 229, 0.14),
+            transparent 35%
+        ),
+        #020617;
 }
 
 .auth-card {
@@ -297,7 +303,7 @@ footer {
 
     border: 1px solid #1f2937;
 
-    border-radius: 15px;
+    border-radius: 16px;
 
     box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.35);
@@ -310,9 +316,28 @@ footer {
 }
 
 .auth-icon {
-    font-size: 45px;
+    width: 70px;
+    height: 70px;
 
-    margin-bottom: 15px;
+    margin: 0 auto 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #4f46e5
+        );
+
+    border-radius: 18px;
+
+    font-size: 32px;
+
+    box-shadow:
+        0 10px 25px rgba(37, 99, 235, 0.25);
 }
 
 .auth-header h1 {
@@ -323,9 +348,14 @@ footer {
 
 .auth-header p {
     color: #94a3b8;
+
+    font-size: 14px;
 }
 
-/* FORMULARIO */
+
+/* =========================
+   FORMULARIO
+========================= */
 
 .form-group {
     margin-bottom: 20px;
@@ -346,6 +376,8 @@ footer {
 .form-group input {
     width: 100%;
 
+    box-sizing: border-box;
+
     padding: 13px 14px;
 
     background: #020617;
@@ -360,7 +392,13 @@ footer {
 
     outline: none;
 
-    transition: 0.2s;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.form-group input::placeholder {
+    color: #64748b;
 }
 
 .form-group input:focus {
@@ -370,6 +408,11 @@ footer {
         0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
+
+/* =========================
+   BOTÓN
+========================= */
+
 .auth-button {
     width: 100%;
 
@@ -378,9 +421,23 @@ footer {
     cursor: pointer;
 
     font-size: 15px;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
-/* MENSAJES */
+.auth-button:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 25px rgba(37, 99, 235, 0.25);
+}
+
+
+/* =========================
+   MENSAJES
+========================= */
 
 .message {
     margin-top: 20px;
@@ -416,6 +473,11 @@ footer {
     color: #fca5a5;
 }
 
+
+/* =========================
+   FOOTER AUTH
+========================= */
+
 .auth-footer {
     margin-top: 25px;
 
@@ -438,10 +500,35 @@ footer {
     text-decoration: none;
 
     font-weight: bold;
+
+    transition: color 0.2s ease;
 }
 
 .auth-footer a:hover {
+    color: #93c5fd;
+
     text-decoration: underline;
+}
+
+
+/* =========================
+   AUTH RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+
+    .auth-page {
+        padding: 40px 15px;
+    }
+
+    .auth-card {
+        padding: 30px 22px;
+    }
+
+    .auth-header h1 {
+        font-size: 26px;
+    }
+
 }
 
 /* =========================
@@ -964,4 +1051,111 @@ footer {
     .admin-header h1 {
         font-size: 32px;
     }
+}
+
+/* =========================
+   TIENDA - MEJORAS VISUALES
+========================= */
+
+.game-image {
+    position: relative;
+    overflow: hidden;
+    height: 220px;
+    background: #020617;
+}
+
+.game-image img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    transition: transform 0.3s ease;
+}
+
+
+.game-card:hover .game-image img {
+    transform: scale(1.05);
+}
+
+.game-image-fallback {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(
+            135deg,
+            #1e3a8a,
+            #312e81
+        );
+
+    font-size: 65px;
+}
+
+.game-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-bottom: 10px;
+}
+
+.game-title-row h2 {
+    margin: 0;
+}
+
+.stock-badge {
+    flex-shrink: 0;
+
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    background: #052e16;
+    color: #86efac;
+
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.stock-badge.stock-empty {
+    background: #450a0a;
+    color: #fca5a5;
+}
+
+.game-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    margin-bottom: 18px;
+}
+
+.game-meta span {
+    padding: 6px 9px;
+
+    border-radius: 6px;
+
+    background: #1e293b;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+.buy-button {
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.buy-button:hover:not(:disabled) {
+    box-shadow:
+        0 8px 20px rgba(37, 99, 235, 0.25);
 }
