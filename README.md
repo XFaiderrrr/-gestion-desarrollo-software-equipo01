@@ -1,177 +1,217 @@
 # Bugistore
 
-## Tienda de Venta y Gestión de Videojuegos
-
-**Bugistore** es un proyecto académico de una tienda web de videojuegos desarrollada mediante una arquitectura basada en **microservicios**.
-
-El sistema permite gestionar usuarios, videojuegos y compras, incorporando autenticación, autorización mediante roles, administración del catálogo y procesamiento de compras.
-
-El proyecto fue desarrollado utilizando tecnologías web tradicionales y herramientas disponibles en **AppServ**.
+Sistema web de gestión y venta de videojuegos desarrollado bajo una arquitectura de microservicios. El proyecto integra autenticación, gestión de usuarios, catálogo de videojuegos, compras, control de inventario, panel administrativo y una Progressive Web App (PWA).
 
 ---
 
-## Integrantes del equipo
+## 1. Descripción del proyecto
 
-| Integrante                         | Rol                         | Microservicio / Área |
-| ---------------------------------- | --------------------------- | -------------------- |
-| **Uscanga Lara Ivan**              | Líder de Proyecto / Backend | `auth-service`       |
-| **Camacho Hernandez Donovan Emir** | Backend Developer           | `user-service`       |
-| **Medina Estrada Ethan Issac**     | Backend Developer           | `game-service`       |
-| **Alavez Hernandez Alan Cesar**    | Backend Developer           | `purchase-service`   |
-| **Osorio Angeles Monica Lizeth**   | Backend Developer           | `purchase-service`   |
+Bugistore es una plataforma web orientada a la venta y administración de videojuegos.
+
+El sistema fue desarrollado utilizando una arquitectura de microservicios, donde cada servicio posee una responsabilidad específica y cuenta con su propia base de datos.
+
+La comunicación entre los servicios se realiza mediante APIs HTTP y las solicitudes externas son centralizadas mediante un API Gateway.
+
+Además, el frontend fue convertido en una Progressive Web App (PWA), permitiendo instalar Bugistore como una aplicación y utilizar determinados recursos de manera offline mediante un Service Worker.
 
 ---
 
-## Tecnologías utilizadas
+## 2. Objetivos
 
-### Backend
+### Objetivo general
 
-* PHP 7.3
-* MySQL
-* Apache
-* AppServ
-* Arquitectura de microservicios
-* API REST
-* JSON
-* Bearer Token
+Desarrollar una plataforma web para la gestión y venta de videojuegos utilizando una arquitectura de microservicios que permita separar responsabilidades, facilitar el mantenimiento y mejorar la escalabilidad del sistema.
 
-### Frontend
+### Objetivos específicos
+
+* Implementar autenticación y autorización de usuarios.
+* Gestionar usuarios y roles.
+* Administrar un catálogo de videojuegos.
+* Implementar control de inventario.
+* Permitir la realización de compras.
+* Registrar y consultar compras realizadas.
+* Implementar funciones administrativas.
+* Centralizar las solicitudes mediante un API Gateway.
+* Separar la información mediante bases de datos independientes.
+* Implementar pruebas funcionales de los servicios.
+* Configurar integración continua mediante GitHub Actions.
+* Convertir el frontend en una Progressive Web App.
+
+---
+
+## 3. Alcance
+
+El sistema permite:
+
+* Registrar usuarios.
+* Iniciar y cerrar sesión.
+* Validar sesiones mediante tokens.
+* Manejar roles de usuario y administrador.
+* Consultar videojuegos.
+* Consultar información individual de videojuegos.
+* Crear, modificar y eliminar videojuegos mediante funciones administrativas.
+* Controlar el stock disponible.
+* Realizar compras.
+* Consultar las compras del usuario.
+* Consultar todas las compras mediante el panel administrativo.
+* Administrar usuarios.
+* Eliminar usuarios.
+* Instalar Bugistore como aplicación PWA.
+* Utilizar recursos estáticos previamente almacenados mediante caché.
+
+Las operaciones que requieren comunicación con los microservicios necesitan conexión a Internet o a la red donde se encuentre desplegado el backend.
+
+---
+
+# 4. Tecnologías utilizadas
+
+## Frontend
 
 * HTML5
 * CSS3
 * JavaScript
+* Progressive Web App (PWA)
+* Manifest Web App
+* Service Worker
 
-### Control de versiones
+## Backend
+
+* PHP 7.3.10
+* APIs HTTP
+* Arquitectura de microservicios
+* Apache / AppServ
+
+## Bases de datos
+
+* MySQL
+* phpMyAdmin
+
+## Control de versiones
 
 * Git
 * GitHub
+
+## Integración continua
+
 * GitHub Actions
 
 ---
 
-## Arquitectura del sistema
+# 5. Arquitectura del sistema
 
-Bugistore utiliza una arquitectura de microservicios en la que cada servicio tiene una responsabilidad específica.
-
-![Arquitectura y estructura de Bugistore](frontend/images/README/arquitectura-estructura.png)
-
-La comunicación entre el frontend y los diferentes servicios se realiza mediante el **API Gateway**, que funciona como punto de entrada principal a la aplicación.
-
-### Flujo general
+El proyecto utiliza una arquitectura de microservicios.
 
 ```text
-                    ┌─────────────────────┐
-                    │      FRONTEND       │
-                    │    HTML / CSS / JS  │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │    API GATEWAY      │
-                    └──────────┬──────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          │                    │                    │
-          ▼                    ▼                    ▼
- ┌────────────────┐   ┌────────────────┐   ┌────────────────┐
- │ AUTH SERVICE   │   │  USER SERVICE  │   │  GAME SERVICE  │
- └───────┬────────┘   └───────┬────────┘   └───────┬────────┘
-         │                    │                    │
-         ▼                    ▼                    ▼
- ┌────────────────┐   ┌────────────────┐   ┌────────────────┐
- │ tienda_auth    │   │ tienda_users   │   │ tienda_games   │
- └────────────────┘   └────────────────┘   └────────────────┘
+                         ┌──────────────────────┐
+                         │      Frontend        │
+                         │ HTML / CSS / JS / PWA│
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │     API Gateway      │
+                         └──────────┬───────────┘
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              │                     │                     │
+              ▼                     ▼                     ▼
+     ┌────────────────┐    ┌────────────────┐    ┌────────────────┐
+     │  Auth Service  │    │  User Service  │    │  Game Service  │
+     └───────┬────────┘    └───────┬────────┘    └───────┬────────┘
+             │                     │                     │
+             ▼                     ▼                     ▼
+     ┌────────────────┐    ┌────────────────┐    ┌────────────────┐
+     │ tienda_auth    │    │ tienda_users   │    │ tienda_games   │
+     └────────────────┘    └────────────────┘    └────────────────┘
 
-                               │
-                               ▼
-                     ┌──────────────────┐
-                     │ PURCHASE SERVICE │
-                     └────────┬─────────┘
-                              │
-                              ▼
-                     ┌──────────────────┐
-                     │ tienda_purchases │
-                     └──────────────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │  Purchase Service    │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │ tienda_purchases     │
+                         └──────────────────────┘
 ```
+
+Cada microservicio se encarga de una responsabilidad específica.
 
 ---
 
-## Estructura del proyecto
-
-La estructura actual del repositorio es:
-
-![Estructura del proyecto](frontend/images/README/arquitectura-estructura.png)
+# 6. Estructura del proyecto
 
 ```text
 -gestion-desarrollo-software-equipo01/
 │
 ├── .github/
 │   └── workflows/
-│       └── ci.yml
+│       └── ...
 │
 ├── api-gateway/
-│   ├── public/
-│   ├── routes/
-│   └── services/
+│   └── public/
+│       └── index.php
 │
 ├── auth-service/
+│   ├── config/
 │   ├── controllers/
 │   ├── middleware/
 │   ├── models/
 │   ├── public/
-│   └── routes/
+│   └── services/
 │
 ├── database/
-│   ├── tienda_auth/
-│   ├── tienda_games/
-│   ├── tienda_purchases/
-│   └── tienda_users/
+│   └── ...
 │
 ├── frontend/
-│   ├── css/
-│   │   └── styles.css
-│   │
-│   ├── images/
-│   │   ├── games/
-│   │   └── README/
-│   │       ├── admin.png
-│   │       ├── arquitectura-estructura.png
-│   │       ├── inicio.png
-│   │       ├── login.png
-│   │       ├── registro.png
-│   │       └── tienda.png
-│   │
-│   ├── js/
-│   │   ├── admin.js
-│   │   ├── auth.js
-│   │   └── tienda.js
-│   │
-│   ├── admin.html
 │   ├── index.html
 │   ├── login.html
 │   ├── registro.html
-│   └── tienda.html
+│   ├── tienda.html
+│   ├── admin.html
+│   ├── manifest.json
+│   ├── service-worker.js
+│   │
+│   ├── css/
+│   │   └── styles.css
+│   │
+│   ├── js/
+│   │   ├── auth.js
+│   │   ├── tienda.js
+│   │   ├── admin.js
+│   │   └── pwa.js
+│   │
+│   └── images/
+│       ├── games/
+│       ├── icons/
+│       │   ├── icon-192.png
+│       │   └── icon-512.png
+│       └── README/
 │
 ├── game-service/
+│   ├── config/
 │   ├── controllers/
 │   ├── middleware/
 │   ├── models/
 │   ├── public/
-│   └── routes/
+│   └── services/
 │
 ├── purchase-service/
+│   ├── config/
 │   ├── controllers/
 │   ├── middleware/
 │   ├── models/
 │   ├── public/
-│   └── routes/
+│   └── services/
 │
 ├── user-service/
+│   ├── config/
 │   ├── controllers/
 │   ├── middleware/
 │   ├── models/
 │   ├── public/
-│   └── routes/
+│   └── services/
 │
 ├── .gitignore
 └── README.md
@@ -179,89 +219,93 @@ La estructura actual del repositorio es:
 
 ---
 
-## Microservicios
+# 7. Microservicios
 
-### Auth Service
+## 7.1 Auth Service
 
-El microservicio de autenticación se encarga de:
+Responsable de la autenticación y autorización.
+
+Funciones principales:
 
 * Registro de usuarios.
 * Inicio de sesión.
-* Validación de sesiones.
-* Generación de tokens.
+* Validación de tokens.
 * Cierre de sesión.
-* Gestión de roles.
-* Autorización de usuarios administradores.
-* Comunicación interna con `user-service`.
+* Expiración de tokens.
+* Manejo de roles.
+* Comunicación interna con User Service.
 
-Los roles disponibles son:
+El sistema utiliza tokens Bearer para autenticar las solicitudes protegidas.
+
+El token tiene una vigencia determinada y debe enviarse mediante el encabezado:
 
 ```text
-usuario
-admin
+Authorization: Bearer TOKEN
 ```
 
 ---
 
-### User Service
+## 7.2 User Service
 
-El microservicio de usuarios administra la información de los usuarios registrados.
+Responsable de la gestión de usuarios.
 
-Sus principales funciones son:
+Funciones:
 
 * Listar usuarios.
 * Consultar usuarios.
-* Actualizar usuarios.
+* Actualizar información.
 * Eliminar usuarios.
+* Sincronizar información con Auth Service.
 * Validar permisos administrativos.
-* Sincronizar información con `auth-service`.
+
+Las operaciones administrativas requieren autenticación y autorización.
 
 ---
 
-### Game Service
+## 7.3 Game Service
 
-El microservicio de videojuegos administra el catálogo de productos.
+Responsable del catálogo de videojuegos.
 
-Sus funciones principales son:
+Funciones:
 
-* Listar videojuegos.
-* Consultar videojuegos individuales.
+* Consultar todos los videojuegos.
+* Consultar un videojuego.
 * Crear videojuegos.
 * Actualizar videojuegos.
 * Eliminar videojuegos.
-* Administrar existencias.
-* Disminuir el stock durante una compra.
+* Consultar y controlar stock.
+* Disminuir stock durante una compra.
 
-El catálogo cuenta con videojuegos y sus respectivos datos de nombre, descripción, precio, stock e imagen.
-
----
-
-### Purchase Service
-
-El microservicio de compras se encarga de procesar las compras realizadas por los usuarios.
-
-El flujo de compra realiza las siguientes operaciones:
-
-1. Valida la autenticación del usuario.
-2. Obtiene la información del videojuego.
-3. Verifica la cantidad solicitada.
-4. Comprueba la disponibilidad del stock.
-5. Disminuye el stock del videojuego.
-6. Registra la compra.
-7. Devuelve la información correspondiente al usuario.
-
-También permite:
-
-* Consultar el historial de compras del usuario.
-* Consultar todas las compras mediante una cuenta administrativa.
+Las operaciones de modificación están protegidas para usuarios administradores.
 
 ---
 
-## API Gateway
+## 7.4 Purchase Service
 
-El `api-gateway` funciona como punto de entrada de las peticiones realizadas desde el frontend.
+Responsable de las compras.
 
-Las principales áreas disponibles son:
+Funciones:
+
+* Crear compras.
+* Validar usuario autenticado.
+* Validar existencia del videojuego.
+* Validar disponibilidad de stock.
+* Disminuir el inventario.
+* Registrar la compra.
+* Consultar compras del usuario.
+* Consultar todas las compras para administradores.
+
+Durante una compra se realiza una comunicación entre Purchase Service y Game Service para validar y disminuir el inventario.
+
+---
+
+# 8. API Gateway
+
+El API Gateway funciona como punto de entrada principal para las solicitudes del frontend.
+
+Permite centralizar las peticiones hacia los diferentes microservicios.
+
+Las principales acciones son:
 
 ```text
 ?action=auth
@@ -270,19 +314,58 @@ Las principales áreas disponibles son:
 ?action=purchases
 ```
 
-Esto permite centralizar el acceso a los diferentes microservicios y evitar que el frontend tenga que comunicarse directamente con cada servicio.
+Para compras se manejan operaciones como:
+
+```text
+purchase_action=create
+purchase_action=my-purchases
+purchase_action=all
+```
+
+El Gateway también se encarga de recibir y reenviar los encabezados de autorización correspondientes.
 
 ---
 
-## Frontend
+# 9. Bases de datos
 
-El frontend fue desarrollado utilizando únicamente:
+Cada microservicio utiliza una base de datos independiente.
 
-* HTML
-* CSS
+```text
+tienda_auth
+tienda_users
+tienda_games
+tienda_purchases
+```
+
+Esta separación permite mantener aislada la información correspondiente a cada dominio del sistema.
+
+### tienda_auth
+
+Contiene la información necesaria para autenticación y credenciales.
+
+### tienda_users
+
+Contiene la información de los usuarios.
+
+### tienda_games
+
+Contiene el catálogo y stock de videojuegos.
+
+### tienda_purchases
+
+Contiene los registros de compras.
+
+---
+
+# 10. Frontend
+
+El frontend está desarrollado con:
+
+* HTML5
+* CSS3
 * JavaScript
 
-Las principales páginas de la aplicación son:
+Las principales páginas son:
 
 ```text
 index.html
@@ -292,292 +375,510 @@ tienda.html
 admin.html
 ```
 
-### Página de inicio
+### Página principal
 
-![Página de inicio de Bugistore](frontend/images/README/inicio.png)
+Presenta la plataforma y permite acceder a las funciones principales.
 
-### Inicio de sesión
+![Inicio](frontend/images/README/inicio.png)
 
-![Página de inicio de sesión](frontend/images/README/login.png)
+### Login
+
+Permite iniciar sesión mediante las credenciales registradas.
+
+![Login](frontend/images/README/login.png)
 
 ### Registro
 
-![Página de registro](frontend/images/README/registro.png)
+Permite crear una nueva cuenta.
+
+![Registro](frontend/images/README/registro.png)
 
 ### Tienda
 
-![Tienda de Bugistore](frontend/images/README/tienda.png)
+Presenta el catálogo de videojuegos y permite realizar compras.
 
-### Panel de administración
+![Tienda](frontend/images/README/tienda.png)
 
-![Panel de administración](frontend/images/README/admin.png)
+### Administración
+
+Permite a los usuarios administradores gestionar videojuegos, usuarios y compras.
+
+![Administración](frontend/images/README/admin.png)
 
 ---
 
-## Gestión de roles
+# 11. Progressive Web App
 
-El sistema implementa dos roles principales.
+Bugistore fue convertida en una Progressive Web App.
 
-### Usuario
+La implementación PWA se realizó sin modificar la arquitectura de microservicios existente.
 
-El usuario puede:
+La PWA utiliza:
 
-* Registrarse.
-* Iniciar sesión.
-* Consultar el catálogo.
-* Comprar videojuegos.
-* Consultar su historial de compras.
+```text
+manifest.json
+service-worker.js
+js/pwa.js
+images/icons/icon-192.png
+images/icons/icon-512.png
+```
 
-### Administrador
+## Manifest
 
-El administrador puede:
+El archivo `manifest.json` define la información principal de la aplicación:
 
-* Consultar usuarios.
-* Crear usuarios.
-* Editar usuarios.
-* Eliminar usuarios.
-* Consultar videojuegos.
+```json
+{
+    "name": "Bugistore",
+    "short_name": "Bugistore",
+    "description": "Tienda web de venta y gestión de videojuegos",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#111111",
+    "theme_color": "#111111",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "images/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "images/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
+```
+
+## Service Worker
+
+El Service Worker permite almacenar recursos estáticos de Bugistore en caché.
+
+Se almacenan principalmente:
+
+* Archivos HTML.
+* CSS.
+* JavaScript.
+* Manifest.
+* Iconos.
+
+Las peticiones a los microservicios no son almacenadas por el Service Worker, debido a que operaciones como autenticación, compras y administración requieren comunicación con el backend.
+
+## Funcionamiento offline
+
+La aplicación puede recuperar recursos previamente almacenados aunque no exista conexión.
+
+Sin embargo, las operaciones que requieren comunicación con los microservicios necesitan conexión:
+
+```text
+Login                 → Requiere backend
+Registro              → Requiere backend
+Carga del catálogo    → Requiere backend
+Compra                → Requiere backend
+Administración        → Requiere backend
+```
+
+La implementación offline está enfocada en la disponibilidad de los recursos estáticos.
+
+## Iconos
+
+La PWA utiliza:
+
+```text
+icon-192.png
+icon-512.png
+```
+
+con dimensiones:
+
+```text
+192 × 192 px
+512 × 512 px
+```
+
+---
+
+# 12. Seguridad
+
+El sistema implementa diferentes mecanismos de seguridad:
+
+* Autenticación mediante tokens.
+* Autorización mediante roles.
+* Middleware para validar tokens.
+* Middleware para validar administradores.
+* Protección de endpoints administrativos.
+* Validación de existencia de usuarios.
+* Validación de videojuegos.
+* Validación de stock.
+* Control de acceso a las compras.
+* Comunicación controlada entre microservicios.
+
+Las credenciales no deben almacenarse directamente dentro del código fuente en un entorno de producción.
+
+---
+
+# 13. Flujo de autenticación
+
+El proceso general de autenticación es:
+
+```text
+Usuario
+   │
+   ▼
+Frontend
+   │
+   ▼
+API Gateway
+   │
+   ▼
+Auth Service
+   │
+   ▼
+Validación de credenciales
+   │
+   ▼
+Generación de token
+   │
+   ▼
+Frontend
+```
+
+Posteriormente el frontend utiliza el token para realizar solicitudes protegidas.
+
+---
+
+# 14. Flujo de compra
+
+El flujo de compra es:
+
+```text
+Usuario
+   │
+   ▼
+Frontend
+   │
+   ▼
+API Gateway
+   │
+   ▼
+Purchase Service
+   │
+   ├──► Auth Service
+   │       └── Validación del usuario
+   │
+   └──► Game Service
+           ├── Validar videojuego
+           ├── Validar stock
+           └── Disminuir stock
+                    │
+                    ▼
+             Purchase Service
+                    │
+                    ▼
+             Registrar compra
+```
+
+Este flujo permite mantener separadas las responsabilidades de cada servicio.
+
+---
+
+# 15. Funciones administrativas
+
+Los usuarios con rol de administrador pueden acceder a funciones adicionales.
+
+Entre ellas:
+
 * Crear videojuegos.
-* Editar videojuegos.
+* Modificar videojuegos.
 * Eliminar videojuegos.
-* Consultar las compras realizadas.
+* Consultar usuarios.
+* Actualizar usuarios.
+* Eliminar usuarios.
+* Consultar todas las compras.
 
 Las operaciones administrativas están protegidas mediante autenticación y autorización.
 
 ---
 
-## Bases de datos
+# 16. Pruebas realizadas
 
-Cada microservicio utiliza su propia base de datos, siguiendo el principio de separación de responsabilidades.
+Se realizaron pruebas funcionales sobre los diferentes componentes del sistema.
 
-```text
-tienda_auth
-    └── Información relacionada con autenticación y tokens
+## Auth Service
 
-tienda_users
-    └── Información de usuarios
+* Registro.
+* Login.
+* Validación.
+* Logout.
+* Expiración de tokens.
+* Roles.
+* Eliminación de usuarios.
+* Sincronización con User Service.
 
-tienda_games
-    └── Catálogo y stock de videojuegos
+## User Service
 
-tienda_purchases
-    └── Registro de compras
-```
-
-Esta separación permite mantener independientes los datos correspondientes a cada dominio del sistema.
-
----
-
-## Seguridad
-
-El sistema utiliza autenticación mediante **Bearer Token**.
-
-Las peticiones protegidas requieren enviar el token mediante el encabezado:
-
-```text
-Authorization: Bearer TOKEN
-```
-
-Las operaciones administrativas requieren además que el usuario tenga el rol:
-
-```text
-admin
-```
-
-Los usuarios con rol `usuario` no pueden acceder a las funciones administrativas.
-
----
-
-## Pruebas realizadas
-
-Durante el desarrollo se realizaron pruebas mediante terminal y navegador.
-
-### Autenticación
-
-* Registro de usuario.
-* Inicio de sesión.
-* Validación de token.
-* Cierre de sesión.
-* Validación de roles.
-
-### Usuarios
-
-* Listado.
-* Consulta.
+* Consulta de usuarios.
 * Actualización.
 * Eliminación.
-* Sincronización entre servicios.
+* Protección administrativa.
+* Sincronización con Auth Service.
 
-### Videojuegos
+## Game Service
 
-* Listado.
-* Consulta.
+* Consulta del catálogo.
+* Consulta individual.
 * Creación.
 * Actualización.
 * Eliminación.
-* Disminución de stock.
+* Control de stock.
+* Disminución de stock durante compras.
 
-### Compras
+## Purchase Service
 
-* Creación de compra.
+* Creación de compras.
+* Validación de usuario.
+* Validación de videojuegos.
 * Validación de stock.
-* Actualización de existencias.
-* Registro de compra.
-* Historial del usuario.
-* Consulta administrativa de compras.
+* Registro de compras.
+* Consulta de compras personales.
+* Consulta administrativa.
 
-### Seguridad
+## Frontend
 
-* Bloqueo de funciones administrativas para usuarios normales.
-* Validación de tokens.
-* Protección de endpoints administrativos.
+* Registro.
+* Login.
+* Navegación.
+* Catálogo.
+* Compra.
+* Panel administrativo.
+* Gestión de usuarios.
+* Gestión de videojuegos.
+
+## PWA
+
+* Registro del Service Worker.
+* Reconocimiento del Manifest.
+* Validación de iconos.
+* Instalación como aplicación.
+* Funcionamiento en modo `standalone`.
+* Almacenamiento de recursos en Cache Storage.
+* Prueba offline de recursos estáticos.
 
 ---
 
-## Instalación y ejecución
+# 17. Integración continua
 
-### Requisitos
+El proyecto utiliza GitHub Actions para automatizar procesos de integración continua.
+
+La configuración se encuentra dentro de:
+
+```text
+.github/workflows/
+```
+
+Los workflows permiten comprobar automáticamente el estado del proyecto ante cambios realizados en el repositorio.
+
+---
+
+# 18. Instalación local
 
 Para ejecutar el proyecto localmente se requiere:
 
-* Windows
-* AppServ
-* Apache
-* MySQL
-* PHP 7.3 o compatible
-* Git
+* AppServ.
+* Apache.
+* PHP 7.3.10.
+* MySQL.
+* phpMyAdmin.
+* Navegador web.
+* Git.
 
-### Ubicación del proyecto
+El proyecto debe colocarse dentro del directorio:
 
-El proyecto se encuentra dentro del directorio de Apache:
+```text
+C:\AppServ\www\
+```
+
+Por ejemplo:
 
 ```text
 C:\AppServ\www\-gestion-desarrollo-software-equipo01
 ```
 
-### URL base
+---
+
+# 19. Configuración de bases de datos
+
+Se deben crear las siguientes bases de datos:
 
 ```text
-http://localhost/-gestion-desarrollo-software-equipo01/
+tienda_auth
+tienda_users
+tienda_games
+tienda_purchases
 ```
 
-### Frontend
+Los archivos correspondientes se encuentran dentro del directorio:
 
-Para acceder a la aplicación:
+```text
+database/
+```
+
+Cada servicio debe configurarse para conectarse con su respectiva base de datos.
+
+---
+
+# 20. Ejecución del proyecto
+
+Con Apache y MySQL activos en AppServ, el frontend puede accederse desde:
 
 ```text
 http://localhost/-gestion-desarrollo-software-equipo01/frontend/
 ```
 
-Es necesario que Apache y MySQL estén activos desde AppServ.
+El API Gateway se encuentra dentro de:
+
+```text
+api-gateway/
+```
+
+Los diferentes microservicios se encuentran dentro de sus respectivos directorios.
 
 ---
 
-## Control de versiones
+# 21. Control de versiones
 
-El proyecto utiliza Git y GitHub para el control de versiones y colaboración entre los integrantes del equipo.
+El proyecto utiliza Git para el control de versiones.
 
-El repositorio contiene los diferentes microservicios, frontend, configuración de base de datos y archivos de documentación.
+Comandos principales utilizados durante el desarrollo:
 
-Repositorio:
+```bash
+git status
+```
 
-```text
+Muestra el estado actual del repositorio.
+
+```bash
+git add .
+```
+
+Agrega los cambios al área de preparación.
+
+```bash
+git commit -m "mensaje"
+```
+
+Crea un commit con los cambios realizados.
+
+```bash
+git push
+```
+
+Envía los cambios al repositorio remoto.
+
+```bash
+git pull
+```
+
+Obtiene los cambios realizados en el repositorio remoto.
+
+```bash
+git clone
+```
+
+Permite obtener una copia del repositorio.
+
+---
+
+# 22. Trabajo en equipo
+
+Para trabajar en equipo, cada integrante puede obtener el proyecto mediante Git.
+
+Después de realizar cambios:
+
+```bash
+git add .
+git commit -m "Descripción del cambio"
+git push
+```
+
+Antes de comenzar a trabajar se recomienda actualizar el repositorio:
+
+```bash
+git pull
+```
+
+Cuando existen modificaciones realizadas por diferentes integrantes, Git puede requerir un proceso de merge para combinar los cambios.
+
+---
+
+# 23. Repositorio
+
+Repositorio oficial del proyecto:
+
 https://github.com/XFaiderrrr/-gestion-desarrollo-software-equipo01
-```
 
 ---
 
-## Integración continua
+# 24. Equipo de desarrollo
 
-El proyecto cuenta con un flujo de **GitHub Actions** ubicado en:
-
-```text
-.github/workflows/ci.yml
-```
-
-El flujo se ejecuta cuando se realizan cambios mediante:
-
-* `push` a `main`
-* `pull_request` hacia `main`
-
-El proceso utiliza:
-
-* Ubuntu
-* PHP 7.3
-* MySQL 8.0
-* Extensiones `pdo` y `pdo_mysql`
-
-Esto permite comprobar automáticamente la configuración básica del proyecto y su entorno de ejecución.
+| Integrante                     | Rol                         | Microservicio    |
+| ------------------------------ | --------------------------- | ---------------- |
+| Uscanga Lara Ivan              | Líder de Proyecto / Backend | Auth Service     |
+| Camacho Hernandez Donovan Emir | Backend Developer           | User Service     |
+| Medina Estrada Ethan Issac     | Backend Developer           | Game Service     |
+| Alavez Hernandez Alan Cesar    | Backend Developer           | Purchase Service |
+| Osorio Angeles Monica Lizeth   | Backend Developer           | Purchase Service |
 
 ---
 
-## Estado final del proyecto
+# 25. Evidencia de arquitectura
 
-### Funcionalidades de usuario
+La estructura general del proyecto puede consultarse en:
 
-* [x] Registro de usuarios
-* [x] Inicio de sesión
-* [x] Catálogo de videojuegos
-* [x] Compra de videojuegos
-* [x] Descuento automático de stock
-* [x] Historial de compras
-
-### Funcionalidades administrativas
-
-* [x] Inicio de sesión administrativo
-* [x] Listado de usuarios
-* [x] Creación de usuarios
-* [x] Edición de usuarios
-* [x] Eliminación de usuarios
-* [x] Listado de videojuegos
-* [x] Creación de videojuegos
-* [x] Edición de videojuegos
-* [x] Eliminación de videojuegos
-* [x] Consulta de compras
-
-### Seguridad
-
-* [x] Autenticación mediante token
-* [x] Validación de roles
-* [x] Protección de endpoints administrativos
-* [x] Bloqueo de funciones administrativas para usuarios normales
-* [x] Comunicación entre microservicios
-
-### Infraestructura
-
-* [x] Arquitectura de microservicios
-* [x] API Gateway
-* [x] Bases de datos independientes
-* [x] Integración con GitHub
-* [x] GitHub Actions
-* [x] Documentación del proyecto
+![Arquitectura y estructura](frontend/images/README/arquitectura-estructura.png)
 
 ---
 
-## Objetivo del proyecto
+# 26. Estado final del proyecto
 
-El objetivo de Bugistore es desarrollar una aplicación web funcional para la venta y gestión de videojuegos, aplicando los principios fundamentales de una arquitectura basada en microservicios.
+El proyecto Bugistore se encuentra funcional y cuenta con:
 
-El proyecto permite poner en práctica conceptos relacionados con:
-
-* Desarrollo web.
-* APIs REST.
 * Arquitectura de microservicios.
-* Bases de datos.
-* Autenticación y autorización.
-* Gestión de roles.
-* Comunicación entre servicios.
-* Control de versiones.
+* Auth Service.
+* User Service.
+* Game Service.
+* Purchase Service.
+* API Gateway.
+* Bases de datos independientes.
+* Sistema de autenticación.
+* Sistema de autorización por roles.
+* Catálogo de videojuegos.
+* Control de inventario.
+* Sistema de compras.
+* Panel administrativo.
+* Frontend funcional.
 * Integración continua.
+* Control de versiones mediante Git y GitHub.
+* Progressive Web App.
+* Manifest configurado.
+* Service Worker funcionando.
+* Caché de recursos estáticos.
+* Instalación como aplicación.
+* Prueba offline realizada correctamente.
+* Documentación técnica.
 
 ---
 
-## Conclusión
+# 27. Conclusión
 
-Bugistore representa una implementación funcional de una tienda de videojuegos basada en una arquitectura de microservicios.
+Bugistore cumple con el objetivo de implementar una plataforma web para la gestión y venta de videojuegos mediante una arquitectura de microservicios.
 
-El sistema integra autenticación, gestión de usuarios, administración de videojuegos, control de inventario y procesamiento de compras, manteniendo cada responsabilidad separada en diferentes servicios.
+La separación de responsabilidades permite que cada servicio administre un dominio específico del sistema, mientras que el API Gateway proporciona un punto de acceso centralizado para el frontend.
 
-La implementación también incorpora un API Gateway, bases de datos independientes, control de acceso mediante roles, GitHub para el control de versiones y GitHub Actions para integración continua.
+La implementación de autenticación, autorización, control de inventario y gestión de compras permite cubrir las principales necesidades funcionales de la plataforma.
 
-Con esto se obtiene una aplicación web funcional que cumple con los objetivos establecidos para el proyecto académico.
+Finalmente, la incorporación de una Progressive Web App amplía las capacidades del sistema al permitir su instalación como aplicación y proporcionar disponibilidad offline para los recursos estáticos previamente almacenados.
+
+El proyecto queda preparado para continuar con futuras mejoras y posibles despliegues en un entorno de producción.
