@@ -1,61 +1,106 @@
-# 🎮 Bugistore
+# Bugistore
 
 ## Tienda de Venta y Gestión de Videojuegos
 
-**Bugistore** es una aplicación web de comercio electrónico desarrollada como proyecto académico para la venta y gestión de videojuegos.
+**Bugistore** es un proyecto académico de una tienda web de videojuegos desarrollada mediante una arquitectura basada en **microservicios**.
 
-El sistema utiliza una **arquitectura basada en microservicios**, separando las principales funcionalidades de la aplicación en servicios independientes para autenticación, usuarios, videojuegos y compras.
+El sistema permite gestionar usuarios, videojuegos y compras, incorporando autenticación, autorización mediante roles, administración del catálogo y procesamiento de compras.
 
-El proyecto fue desarrollado utilizando:
+El proyecto fue desarrollado utilizando tecnologías web tradicionales y herramientas disponibles en **AppServ**.
+
+---
+
+## Integrantes del equipo
+
+| Integrante                         | Rol                         | Microservicio / Área |
+| ---------------------------------- | --------------------------- | -------------------- |
+| **Uscanga Lara Ivan**              | Líder de Proyecto / Backend | `auth-service`       |
+| **Camacho Hernandez Donovan Emir** | Backend Developer           | `user-service`       |
+| **Medina Estrada Ethan Issac**     | Backend Developer           | `game-service`       |
+| **Alavez Hernandez Alan Cesar**    | Backend Developer           | `purchase-service`   |
+| **Osorio Angeles Monica Lizeth**   | Backend Developer           | `purchase-service`   |
+
+---
+
+## Tecnologías utilizadas
+
+### Backend
+
+* PHP 7.3
+* MySQL
+* Apache
+* AppServ
+* Arquitectura de microservicios
+* API REST
+* JSON
+* Bearer Token
+
+### Frontend
 
 * HTML5
 * CSS3
 * JavaScript
-* PHP
-* MySQL
-* Apache / AppServ
+
+### Control de versiones
+
 * Git
 * GitHub
 * GitHub Actions
 
 ---
 
-# 👥 Equipo de desarrollo
+## Arquitectura del sistema
 
-| Integrante                         | Rol                         | Microservicio principal |
-| ---------------------------------- | --------------------------- | ----------------------- |
-| **Uscanga Lara Ivan**              | Líder de Proyecto / Backend | `auth-service`          |
-| **Camacho Hernandez Donovan Emir** | Backend Developer           | `user-service`          |
-| **Medina Estrada Ethan Issac**     | Backend Developer           | `game-service`          |
-| **Alavez Hernandez Alan Cesar**    | Backend Developer           | `purchase-service`      |
-| **Osorio Angeles Monica Lizeth**   | Backend Developer           | `purchase-service`      |
+Bugistore utiliza una arquitectura de microservicios en la que cada servicio tiene una responsabilidad específica.
+
+![Arquitectura y estructura de Bugistore](frontend/images/README/arquitectura-estructura.png)
+
+La comunicación entre el frontend y los diferentes servicios se realiza mediante el **API Gateway**, que funciona como punto de entrada principal a la aplicación.
+
+### Flujo general
+
+```text
+                    ┌─────────────────────┐
+                    │      FRONTEND       │
+                    │    HTML / CSS / JS  │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │    API GATEWAY      │
+                    └──────────┬──────────┘
+                               │
+          ┌────────────────────┼────────────────────┐
+          │                    │                    │
+          ▼                    ▼                    ▼
+ ┌────────────────┐   ┌────────────────┐   ┌────────────────┐
+ │ AUTH SERVICE   │   │  USER SERVICE  │   │  GAME SERVICE  │
+ └───────┬────────┘   └───────┬────────┘   └───────┬────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+ ┌────────────────┐   ┌────────────────┐   ┌────────────────┐
+ │ tienda_auth    │   │ tienda_users   │   │ tienda_games   │
+ └────────────────┘   └────────────────┘   └────────────────┘
+
+                               │
+                               ▼
+                     ┌──────────────────┐
+                     │ PURCHASE SERVICE │
+                     └────────┬─────────┘
+                              │
+                              ▼
+                     ┌──────────────────┐
+                     │ tienda_purchases │
+                     └──────────────────┘
+```
 
 ---
 
-# 🏗️ Arquitectura del sistema
+## Estructura del proyecto
 
-Bugistore utiliza una arquitectura basada en microservicios.
+La estructura actual del repositorio es:
 
-El usuario interactúa con el sistema mediante el frontend. Las solicitudes son enviadas al **API Gateway**, que funciona como punto de entrada principal y se encarga de dirigir cada petición al microservicio correspondiente.
-
-Los principales servicios son:
-
-* **Auth Service:** autenticación y autorización.
-* **User Service:** gestión de usuarios.
-* **Game Service:** catálogo e inventario.
-* **Purchase Service:** procesamiento de compras.
-
-Cada microservicio utiliza su propia base de datos.
-
-### Diagrama de arquitectura
-
-![Arquitectura de Bugistore](frontend/images/readme/arquitectura-estructura.png)
-
----
-
-# 📁 Estructura del proyecto
-
-La estructura del proyecto se encuentra organizada de acuerdo con las responsabilidades de cada microservicio.
+![Estructura del proyecto](frontend/images/README/arquitectura-estructura.png)
 
 ```text
 -gestion-desarrollo-software-equipo01/
@@ -66,331 +111,292 @@ La estructura del proyecto se encuentra organizada de acuerdo con las responsabi
 │
 ├── api-gateway/
 │   ├── public/
-│   │   └── index.php
 │   ├── routes/
-│   │   ├── auth.php
-│   │   ├── users.php
-│   │   ├── games.php
-│   │   └── purchases.php
 │   └── services/
 │
 ├── auth-service/
-│   ├── config/
 │   ├── controllers/
 │   ├── middleware/
 │   ├── models/
-│   ├── routes/
-│   └── public/
+│   ├── public/
+│   └── routes/
 │
-├── user-service/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── services/
-│   └── public/
-│
-├── game-service/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   └── public/
-│
-├── purchase-service/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── services/
-│   └── public/
+├── database/
+│   ├── tienda_auth/
+│   ├── tienda_games/
+│   ├── tienda_purchases/
+│   └── tienda_users/
 │
 ├── frontend/
-│   ├── index.html
-│   ├── login.html
-│   ├── registro.html
-│   ├── tienda.html
-│   ├── admin.html
-│   │
 │   ├── css/
 │   │   └── styles.css
 │   │
-│   ├── js/
-│   │   ├── auth.js
-│   │   ├── tienda.js
-│   │   └── admin.js
+│   ├── images/
+│   │   ├── games/
+│   │   └── README/
+│   │       ├── admin.png
+│   │       ├── arquitectura-estructura.png
+│   │       ├── inicio.png
+│   │       ├── login.png
+│   │       ├── registro.png
+│   │       └── tienda.png
 │   │
-│   └── images/
-│       ├── games/
-│       └── readme/
+│   ├── js/
+│   │   ├── admin.js
+│   │   ├── auth.js
+│   │   └── tienda.js
+│   │
+│   ├── admin.html
+│   ├── index.html
+│   ├── login.html
+│   ├── registro.html
+│   └── tienda.html
 │
-├── database/
-│   ├── auth.sql
-│   ├── users.sql
-│   ├── games.sql
-│   └── purchases.sql
+├── game-service/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── public/
+│   └── routes/
+│
+├── purchase-service/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── public/
+│   └── routes/
+│
+├── user-service/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── public/
+│   └── routes/
 │
 ├── .gitignore
 └── README.md
 ```
 
-### Vista gráfica de la estructura
-
-La siguiente imagen muestra de manera visual la organización general del proyecto y sus principales componentes:
-
-![Estructura del proyecto Bugistore](frontend/images/readme/arquitectura-estructura.png)
-
 ---
 
-# 🔐 Auth Service
+## Microservicios
 
-El `auth-service` se encarga de la autenticación y autorización de los usuarios.
+### Auth Service
 
-Sus principales funciones son:
+El microservicio de autenticación se encarga de:
 
 * Registro de usuarios.
 * Inicio de sesión.
+* Validación de sesiones.
 * Generación de tokens.
-* Validación de tokens.
 * Cierre de sesión.
-* Control de roles.
+* Gestión de roles.
+* Autorización de usuarios administradores.
 * Comunicación interna con `user-service`.
 
-Los usuarios pueden tener los siguientes roles:
+Los roles disponibles son:
 
 ```text
 usuario
 admin
 ```
 
-Las solicitudes protegidas utilizan el siguiente formato:
-
-```text
-Authorization: Bearer TOKEN
-```
-
 ---
 
-# 👤 User Service
+### User Service
 
-El `user-service` administra la información de los usuarios.
+El microservicio de usuarios administra la información de los usuarios registrados.
 
-Permite:
+Sus principales funciones son:
 
 * Listar usuarios.
 * Consultar usuarios.
 * Actualizar usuarios.
 * Eliminar usuarios.
-* Mantener sincronizada la información relacionada con autenticación.
-
-Las operaciones administrativas están protegidas mediante autenticación y autorización por roles.
+* Validar permisos administrativos.
+* Sincronizar información con `auth-service`.
 
 ---
 
-# 🎮 Game Service
+### Game Service
 
-El `game-service` administra el catálogo de videojuegos y el inventario.
+El microservicio de videojuegos administra el catálogo de productos.
 
-Permite:
+Sus funciones principales son:
 
-* Consultar todos los videojuegos.
-* Consultar un videojuego.
+* Listar videojuegos.
+* Consultar videojuegos individuales.
 * Crear videojuegos.
-* Editar videojuegos.
+* Actualizar videojuegos.
 * Eliminar videojuegos.
-* Consultar existencias.
-* Disminuir el stock después de una compra.
+* Administrar existencias.
+* Disminuir el stock durante una compra.
 
-El catálogo incluye videojuegos de diferentes géneros y plataformas.
-
----
-
-# 🛒 Purchase Service
-
-El `purchase-service` se encarga del procesamiento de las compras.
-
-El flujo principal es:
-
-1. El usuario selecciona un videojuego.
-2. Se valida su autenticación.
-3. Se consulta la información del videojuego.
-4. Se verifica que exista stock suficiente.
-5. Se disminuye el inventario.
-6. Se registra la compra.
-7. La compra queda disponible en el historial del usuario.
-
-Los administradores también pueden consultar las compras realizadas dentro del sistema.
+El catálogo cuenta con videojuegos y sus respectivos datos de nombre, descripción, precio, stock e imagen.
 
 ---
 
-# 🌐 API Gateway
+### Purchase Service
 
-El `api-gateway` funciona como punto de entrada principal para las peticiones del frontend.
+El microservicio de compras se encarga de procesar las compras realizadas por los usuarios.
 
-El frontend no necesita comunicarse directamente con cada microservicio.
+El flujo de compra realiza las siguientes operaciones:
+
+1. Valida la autenticación del usuario.
+2. Obtiene la información del videojuego.
+3. Verifica la cantidad solicitada.
+4. Comprueba la disponibilidad del stock.
+5. Disminuye el stock del videojuego.
+6. Registra la compra.
+7. Devuelve la información correspondiente al usuario.
+
+También permite:
+
+* Consultar el historial de compras del usuario.
+* Consultar todas las compras mediante una cuenta administrativa.
+
+---
+
+## API Gateway
+
+El `api-gateway` funciona como punto de entrada de las peticiones realizadas desde el frontend.
+
+Las principales áreas disponibles son:
 
 ```text
-Frontend
-   │
-   ▼
-API Gateway
-   │
-   ├──► Auth Service
-   │
-   ├──► User Service
-   │
-   ├──► Game Service
-   │
-   └──► Purchase Service
+?action=auth
+?action=users
+?action=games
+?action=purchases
 ```
 
-Esto permite centralizar las peticiones y mantener una comunicación organizada entre el frontend y los servicios.
+Esto permite centralizar el acceso a los diferentes microservicios y evitar que el frontend tenga que comunicarse directamente con cada servicio.
 
 ---
 
-# 🗄️ Bases de datos
+## Frontend
 
-Cada microservicio mantiene su propia base de datos.
+El frontend fue desarrollado utilizando únicamente:
+
+* HTML
+* CSS
+* JavaScript
+
+Las principales páginas de la aplicación son:
 
 ```text
-auth-service
-└── tienda_auth
-
-user-service
-└── tienda_users
-
-game-service
-└── tienda_games
-
-purchase-service
-└── tienda_purchases
+index.html
+login.html
+registro.html
+tienda.html
+admin.html
 ```
 
-Esta separación permite mantener los servicios desacoplados y facilita la administración independiente de cada componente.
+### Página de inicio
+
+![Página de inicio de Bugistore](frontend/images/README/inicio.png)
+
+### Inicio de sesión
+
+![Página de inicio de sesión](frontend/images/README/login.png)
+
+### Registro
+
+![Página de registro](frontend/images/README/registro.png)
+
+### Tienda
+
+![Tienda de Bugistore](frontend/images/README/tienda.png)
+
+### Panel de administración
+
+![Panel de administración](frontend/images/README/admin.png)
 
 ---
 
-# 🛍️ Funcionalidades del sistema
+## Gestión de roles
 
-## 👤 Usuario
+El sistema implementa dos roles principales.
+
+### Usuario
 
 El usuario puede:
 
 * Registrarse.
 * Iniciar sesión.
 * Consultar el catálogo.
-* Visualizar videojuegos.
-* Realizar compras.
+* Comprar videojuegos.
 * Consultar su historial de compras.
-* Cerrar sesión.
 
----
+### Administrador
 
-## 👑 Administrador
-
-El administrador cuenta con funcionalidades adicionales.
-
-### Gestión de usuarios
+El administrador puede:
 
 * Consultar usuarios.
 * Crear usuarios.
 * Editar usuarios.
 * Eliminar usuarios.
-
-### Gestión de videojuegos
-
-* Consultar inventario.
-* Agregar videojuegos.
+* Consultar videojuegos.
+* Crear videojuegos.
 * Editar videojuegos.
 * Eliminar videojuegos.
+* Consultar las compras realizadas.
 
-### Gestión de compras
-
-* Consultar las compras realizadas por los usuarios.
+Las operaciones administrativas están protegidas mediante autenticación y autorización.
 
 ---
 
-# 🔒 Seguridad
+## Bases de datos
 
-El sistema implementa mecanismos de autenticación y autorización.
+Cada microservicio utiliza su propia base de datos, siguiendo el principio de separación de responsabilidades.
 
-### Autenticación
+```text
+tienda_auth
+    └── Información relacionada con autenticación y tokens
 
-Las operaciones protegidas requieren un token:
+tienda_users
+    └── Información de usuarios
+
+tienda_games
+    └── Catálogo y stock de videojuegos
+
+tienda_purchases
+    └── Registro de compras
+```
+
+Esta separación permite mantener independientes los datos correspondientes a cada dominio del sistema.
+
+---
+
+## Seguridad
+
+El sistema utiliza autenticación mediante **Bearer Token**.
+
+Las peticiones protegidas requieren enviar el token mediante el encabezado:
 
 ```text
 Authorization: Bearer TOKEN
 ```
 
-### Autorización por roles
-
-Las operaciones administrativas requieren el rol:
+Las operaciones administrativas requieren además que el usuario tenga el rol:
 
 ```text
 admin
 ```
 
-Los usuarios normales no pueden acceder a las funciones administrativas.
-
-### Protección de endpoints
-
-Los servicios utilizan middleware para validar:
-
-* Existencia del token.
-* Validez del token.
-* Usuario autenticado.
-* Rol requerido.
+Los usuarios con rol `usuario` no pueden acceder a las funciones administrativas.
 
 ---
 
-# 🔄 Flujo de una compra
+## Pruebas realizadas
 
-El proceso de compra sigue el siguiente flujo:
-
-```text
-Usuario
-   │
-   ▼
-Frontend
-   │
-   ▼
-API Gateway
-   │
-   ▼
-Purchase Service
-   │
-   ├──► Auth Service
-   │       │
-   │       └── Validación del usuario
-   │
-   ├──► Game Service
-   │       │
-   │       ├── Consulta videojuego
-   │       └── Disminución de stock
-   │
-   ▼
-Purchase Database
-   │
-   ▼
-Compra registrada
-```
-
-De esta manera, la compra afecta tanto al registro de la venta como al inventario disponible.
-
----
-
-# 🧪 Pruebas realizadas
-
-Durante el desarrollo se realizaron pruebas de los diferentes componentes del sistema.
+Durante el desarrollo se realizaron pruebas mediante terminal y navegador.
 
 ### Autenticación
 
-* Registro de usuarios.
+* Registro de usuario.
 * Inicio de sesión.
-* Validación de tokens.
+* Validación de token.
 * Cierre de sesión.
 * Validación de roles.
 
@@ -400,6 +406,7 @@ Durante el desarrollo se realizaron pruebas de los diferentes componentes del si
 * Consulta.
 * Actualización.
 * Eliminación.
+* Sincronización entre servicios.
 
 ### Videojuegos
 
@@ -412,281 +419,165 @@ Durante el desarrollo se realizaron pruebas de los diferentes componentes del si
 
 ### Compras
 
-* Creación de compras.
+* Creación de compra.
 * Validación de stock.
-* Registro de compras.
+* Actualización de existencias.
+* Registro de compra.
 * Historial del usuario.
-* Consulta administrativa.
+* Consulta administrativa de compras.
 
 ### Seguridad
 
 * Bloqueo de funciones administrativas para usuarios normales.
-* Validación mediante Bearer Token.
-
-Las pruebas se realizaron mediante navegador y terminal utilizando solicitudes HTTP.
+* Validación de tokens.
+* Protección de endpoints administrativos.
 
 ---
 
-# 💻 Instalación y ejecución
+## Instalación y ejecución
 
-## Requisitos
+### Requisitos
 
 Para ejecutar el proyecto localmente se requiere:
 
-* AppServ.
-* Apache.
-* MySQL.
-* PHP 7.3 o superior.
-* Git.
-* Navegador web.
+* Windows
+* AppServ
+* Apache
+* MySQL
+* PHP 7.3 o compatible
+* Git
 
----
+### Ubicación del proyecto
 
-## 📥 Clonar el repositorio
-
-Clonar el proyecto dentro del directorio `www` de AppServ:
-
-```bash
-git clone https://github.com/XFaiderrrr/-gestion-desarrollo-software-equipo01.git
-```
-
-La ubicación utilizada durante el desarrollo fue:
+El proyecto se encuentra dentro del directorio de Apache:
 
 ```text
 C:\AppServ\www\-gestion-desarrollo-software-equipo01
 ```
 
----
-
-# 🗄️ Configuración de las bases de datos
-
-Los scripts SQL se encuentran dentro de:
-
-```text
-database/
-```
-
-Los archivos disponibles son:
-
-```text
-auth.sql
-users.sql
-games.sql
-purchases.sql
-```
-
-Las bases de datos utilizadas son:
-
-```text
-tienda_auth
-tienda_users
-tienda_games
-tienda_purchases
-```
-
----
-
-# 🌐 Ejecución local
-
-Una vez iniciados Apache y MySQL desde AppServ, el proyecto puede accederse desde:
+### URL base
 
 ```text
 http://localhost/-gestion-desarrollo-software-equipo01/
 ```
 
-El frontend se encuentra dentro de:
+### Frontend
+
+Para acceder a la aplicación:
 
 ```text
-frontend/
+http://localhost/-gestion-desarrollo-software-equipo01/frontend/
+```
+
+Es necesario que Apache y MySQL estén activos desde AppServ.
+
+---
+
+## Control de versiones
+
+El proyecto utiliza Git y GitHub para el control de versiones y colaboración entre los integrantes del equipo.
+
+El repositorio contiene los diferentes microservicios, frontend, configuración de base de datos y archivos de documentación.
+
+Repositorio:
+
+```text
+https://github.com/XFaiderrrr/-gestion-desarrollo-software-equipo01
 ```
 
 ---
 
-# 📸 Capturas del sistema
+## Integración continua
 
-A continuación se muestran algunas de las principales interfaces desarrolladas para Bugistore.
-
-## 🏠 Página de inicio
-
-La página principal presenta el acceso general al sistema.
-
-![Página de inicio de Bugistore](frontend/images/readme/inicio.png)
-
----
-
-## 🔐 Inicio de sesión
-
-Los usuarios pueden iniciar sesión utilizando sus credenciales.
-
-![Inicio de sesión de Bugistore](frontend/images/readme/login.png)
-
----
-
-## 📝 Registro de usuarios
-
-Los nuevos usuarios pueden crear una cuenta desde el formulario de registro.
-
-![Registro de usuarios de Bugistore](frontend/images/readme/registro.png)
-
----
-
-## 🎮 Tienda
-
-La tienda muestra el catálogo disponible y permite a los usuarios realizar compras.
-
-![Catálogo de videojuegos de Bugistore](frontend/images/readme/tienda.png)
-
----
-
-## 👑 Panel de administración
-
-El administrador dispone de herramientas para gestionar usuarios, videojuegos e información relacionada con las compras.
-
-![Panel de administración de Bugistore](frontend/images/readme/admin.png)
-
----
-
-# 🔄 Integración continua
-
-El proyecto utiliza **GitHub Actions** para realizar comprobaciones automáticas.
-
-El workflow se encuentra en:
+El proyecto cuenta con un flujo de **GitHub Actions** ubicado en:
 
 ```text
 .github/workflows/ci.yml
 ```
 
-El proceso se ejecuta mediante eventos como:
+El flujo se ejecuta cuando se realizan cambios mediante:
 
-* `push`
-* `pull_request`
+* `push` a `main`
+* `pull_request` hacia `main`
 
-El entorno de integración utiliza:
+El proceso utiliza:
 
-* Ubuntu.
-* PHP 7.3.
-* MySQL 8.0.
-* Extensiones `pdo` y `pdo_mysql`.
+* Ubuntu
+* PHP 7.3
+* MySQL 8.0
+* Extensiones `pdo` y `pdo_mysql`
 
-Esto permite comprobar automáticamente la configuración del proyecto durante el desarrollo.
-
----
-
-# 🌿 Control de versiones
-
-El proyecto utiliza Git y GitHub para controlar las versiones del código.
-
-El flujo general utilizado fue:
-
-```text
-Desarrollo local
-      │
-      ▼
-Git
-      │
-      ▼
-Commit
-      │
-      ▼
-GitHub
-      │
-      ▼
-GitHub Actions
-      │
-      ▼
-Validación automática
-```
+Esto permite comprobar automáticamente la configuración básica del proyecto y su entorno de ejecución.
 
 ---
 
-# 📊 Estado final del proyecto
+## Estado final del proyecto
 
-## Usuario
+### Funcionalidades de usuario
 
-* [x] Registro
-* [x] Login
-* [x] Catálogo
-* [x] Compra
-* [x] Descuento de stock
+* [x] Registro de usuarios
+* [x] Inicio de sesión
+* [x] Catálogo de videojuegos
+* [x] Compra de videojuegos
+* [x] Descuento automático de stock
 * [x] Historial de compras
 
-## Administrador
+### Funcionalidades administrativas
 
-* [x] Login administrativo
-* [x] Listar usuarios
-* [x] Crear usuarios
-* [x] Editar usuarios
-* [x] Eliminar usuarios
-* [x] Listar videojuegos
-* [x] Crear videojuegos
-* [x] Editar videojuegos
-* [x] Eliminar videojuegos
-* [x] Ver compras
+* [x] Inicio de sesión administrativo
+* [x] Listado de usuarios
+* [x] Creación de usuarios
+* [x] Edición de usuarios
+* [x] Eliminación de usuarios
+* [x] Listado de videojuegos
+* [x] Creación de videojuegos
+* [x] Edición de videojuegos
+* [x] Eliminación de videojuegos
+* [x] Consulta de compras
 
-## Seguridad
+### Seguridad
 
 * [x] Autenticación mediante token
-* [x] Autorización por roles
-* [x] Protección de endpoints
+* [x] Validación de roles
+* [x] Protección de endpoints administrativos
 * [x] Bloqueo de funciones administrativas para usuarios normales
+* [x] Comunicación entre microservicios
 
-## Microservicios
+### Infraestructura
 
-* [x] Auth Service
-* [x] User Service
-* [x] Game Service
-* [x] Purchase Service
+* [x] Arquitectura de microservicios
 * [x] API Gateway
-
-## Infraestructura
-
-* [x] MySQL
-* [x] Apache
-* [x] AppServ
-* [x] GitHub
+* [x] Bases de datos independientes
+* [x] Integración con GitHub
 * [x] GitHub Actions
+* [x] Documentación del proyecto
 
 ---
 
-# 🎯 Objetivo del proyecto
+## Objetivo del proyecto
 
-El objetivo principal de Bugistore es desarrollar una aplicación web funcional para la venta y gestión de videojuegos utilizando una arquitectura de microservicios.
+El objetivo de Bugistore es desarrollar una aplicación web funcional para la venta y gestión de videojuegos, aplicando los principios fundamentales de una arquitectura basada en microservicios.
 
-El proyecto permite aplicar conocimientos relacionados con:
+El proyecto permite poner en práctica conceptos relacionados con:
 
 * Desarrollo web.
 * APIs REST.
-* PHP.
-* JavaScript.
-* MySQL.
 * Arquitectura de microservicios.
-* Autenticación.
-* Autorización.
-* Control de inventario.
-* Procesamiento de compras.
-* Git y GitHub.
+* Bases de datos.
+* Autenticación y autorización.
+* Gestión de roles.
+* Comunicación entre servicios.
+* Control de versiones.
 * Integración continua.
 
 ---
 
-# 🏁 Conclusión
+## Conclusión
 
-Bugistore integra un sistema completo de venta y gestión de videojuegos mediante una arquitectura distribuida en diferentes microservicios.
+Bugistore representa una implementación funcional de una tienda de videojuegos basada en una arquitectura de microservicios.
 
-La separación de responsabilidades permite que cada servicio gestione una parte específica del sistema, manteniendo independientes la autenticación, los usuarios, el catálogo y las compras.
+El sistema integra autenticación, gestión de usuarios, administración de videojuegos, control de inventario y procesamiento de compras, manteniendo cada responsabilidad separada en diferentes servicios.
 
-El proyecto cuenta con:
+La implementación también incorpora un API Gateway, bases de datos independientes, control de acceso mediante roles, GitHub para el control de versiones y GitHub Actions para integración continua.
 
-* Frontend funcional.
-* API Gateway.
-* Microservicios.
-* Bases de datos independientes.
-* Autenticación mediante tokens.
-* Control de acceso por roles.
-* Gestión de inventario.
-* Procesamiento de compras.
-* Historial de compras.
-* Panel administrativo.
-* Integración continua mediante GitHub Actions.
-
-De esta manera, Bugistore cumple con los objetivos establecidos para el proyecto académico y demuestra la implementación práctica de una arquitectura de microservicios aplicada a una tienda web de videojuegos
+Con esto se obtiene una aplicación web funcional que cumple con los objetivos establecidos para el proyecto académico.
