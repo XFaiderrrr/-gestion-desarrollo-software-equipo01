@@ -1,5 +1,5 @@
 const API_GATEWAY =
-    "http://localhost/-gestion-desarrollo-software-equipo01/api-gateway/public/";
+    "../api-gateway/public/";
 
 
 /* =====================================================

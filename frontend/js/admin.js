@@ -1,7 +1,5 @@
-
 const ADMIN_API =
-    "http://localhost/-gestion-desarrollo-software-equipo01/api-gateway/public/";
-
+    "../api-gateway/public/";
 
 /* =====================================================
    INICIO
