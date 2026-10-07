@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Bugistore | Crear cuenta</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <header class="navbar">
+
+        <div class="logo">
+            🎮 Bugistore
+        </div>
+
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="login.html">Iniciar sesión</a>
+            <a href="registro.html">Registrarse</a>
+        </nav>
+
+    </header>
+
+    <main class="auth-page">
+
+        <section class="auth-card">
+
+            <div class="auth-header">
+
+                <div class="auth-icon">
+                    🎮
+                </div>
+
+                <h1>Crear cuenta</h1>
+
+                <p>
+                    Únete a Bugistore
+                </p>
+
+            </div>
+
+            <form id="registerForm">
+
+                <div class="form-group">
+
+                    <label for="nombre">
+                        Nombre
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nombre"
+                        name="nombre"
+                        placeholder="Tu nombre"
+                        required
+                    >
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="email">
+                        Correo electrónico
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="correo@ejemplo.com"
+                        required
+                    >
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Contraseña
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Mínimo 6 caracteres"
+                        minlength="6"
+                        required
+                    >
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="passwordConfirm">
+                        Confirmar contraseña
+                    </label>
+
+                    <input
+                        type="password"
+                        id="passwordConfirm"
+                        name="passwordConfirm"
+                        placeholder="Repite tu contraseña"
+                        minlength="6"
+                        required
+                    >
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary auth-button"
+                >
+                    Crear cuenta
+                </button>
+
+            </form>
+
+            <div id="registerMessage" class="message"></div>
+
+            <div class="auth-footer">
+
+                <p>
+                    ¿Ya tienes una cuenta?
+                    <a href="login.html">
+                        Inicia sesión
+                    </a>
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+
+        <p>
+            © 2026 Bugistore - Proyecto académico de microservicios
+        </p>
+
+    </footer>
+
+    <script src="js/auth.js"></script>
+
+</body>
+</html>

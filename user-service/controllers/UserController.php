@@ -259,6 +259,10 @@ class UserController
                 return;
             }
 
+            /*
+             * Buscar primero el usuario local.
+             */
+
             $user =
                 $this->userModel->findById(
                     (int) $id
@@ -279,7 +283,8 @@ class UserController
             }
 
             /*
-             * El borrado real lo hace auth-service.
+             * Primero eliminamos el usuario
+             * real de auth-service.
              */
 
             $deleted =
@@ -301,12 +306,41 @@ class UserController
                 return;
             }
 
+            /*
+             * Si auth-service confirmó el borrado,
+             * eliminamos también la copia local
+             * de user-service.
+             */
+
+            $localDeleted =
+                $this->userModel->deleteByAuthUserId(
+                    $user["auth_user_id"]
+                );
+
+            if (!$localDeleted) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "El usuario fue eliminado de auth-service, pero no fue posible eliminar su copia local"
+                    )
+                );
+
+                return;
+            }
+
+            /*
+             * Todo salió correctamente.
+             */
+
             $this->response(
                 200,
                 array(
                     "success" => true,
                     "message" =>
-                        "Usuario eliminado y sincronizado correctamente"
+                        "Usuario eliminado correctamente de auth-service y user-service"
                 )
             );
 
@@ -328,7 +362,8 @@ class UserController
 
         if (getenv("DB_DEBUG") === "true") {
 
-            $response["debug"] = $e->getMessage();
+            $response["debug"] =
+                $e->getMessage();
         }
 
         echo json_encode(

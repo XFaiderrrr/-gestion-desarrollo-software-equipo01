@@ -1,3 +1,4 @@
+
 <?php
 
 class Token
@@ -69,9 +70,12 @@ class Token
             ":token" => $token
         ));
 
-        $tokenData = $stmt->fetch(PDO::FETCH_ASSOC);
+        $tokenData =
+            $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $tokenData ? $tokenData : null;
+        return $tokenData
+            ? $tokenData
+            : null;
     }
 
     public function delete($token)
@@ -85,6 +89,26 @@ class Token
 
         return $stmt->execute(array(
             ":token" => $token
+        ));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ELIMINAR TODOS LOS TOKENS DE UN USUARIO
+    |--------------------------------------------------------------------------
+    */
+
+    public function deleteByUserId($userId)
+    {
+        $sql = "
+            DELETE FROM tokens
+            WHERE user_id = :user_id
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute(array(
+            ":user_id" => $userId
         ));
     }
 }

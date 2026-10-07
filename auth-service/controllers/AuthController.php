@@ -1,3 +1,4 @@
+
 <?php
 
 class AuthController
@@ -566,106 +567,127 @@ class AuthController
     |--------------------------------------------------------------------------
     */
 
-    public function deleteFromUserService($data)
-    {
-        try {
+public function deleteFromUserService($data)
+{
+    try {
 
-            $id = isset($data["auth_user_id"])
-                ? $data["auth_user_id"]
-                : null;
+        $id = isset($data["auth_user_id"])
+            ? $data["auth_user_id"]
+            : null;
 
-            if (
-                $id === null ||
-                !is_numeric($id)
-            ) {
-
-                $this->response(
-                    400,
-                    array(
-                        "success" => false,
-                        "message" =>
-                            "auth_user_id inválido"
-                    )
-                );
-
-                return;
-            }
-
-            $user = $this->userModel->findById(
-                (int) $id
-            );
-
-            if (!$user) {
-
-                $this->response(
-                    404,
-                    array(
-                        "success" => false,
-                        "message" =>
-                            "Usuario no encontrado"
-                    )
-                );
-
-                return;
-            }
-
-            $deleted = $this->userModel->delete(
-                (int) $id
-            );
-
-            if (!$deleted) {
-
-                $this->response(
-                    500,
-                    array(
-                        "success" => false,
-                        "message" =>
-                            "No fue posible eliminar al usuario"
-                    )
-                );
-
-                return;
-            }
-
-            /*
-             * Eliminar la copia en user-service
-             */
-
-            $syncResult =
-                $this->userServiceClient->deleteUser(
-                    $id
-                );
-
-            if (!$syncResult) {
-
-                $this->response(
-                    500,
-                    array(
-                        "success" => false,
-                        "message" =>
-                            "Usuario eliminado de auth-service, " .
-                            "pero no fue posible sincronizar " .
-                            "la eliminación con user-service"
-                    )
-                );
-
-                return;
-            }
+        if (
+            $id === null ||
+            !is_numeric($id)
+        ) {
 
             $this->response(
-                200,
+                400,
                 array(
-                    "success" => true,
+                    "success" => false,
                     "message" =>
-                        "Usuario eliminado y sincronizado correctamente"
+                        "auth_user_id inválido"
                 )
             );
 
-        } catch (PDOException $e) {
-
-            $this->databaseError($e);
+            return;
         }
+
+        $id = (int) $id;
+
+        $user = $this->userModel->findById(
+            $id
+        );
+
+        if (!$user) {
+
+            $this->response(
+                404,
+                array(
+                    "success" => false,
+                    "message" =>
+                        "Usuario no encontrado"
+                )
+            );
+
+            return;
+        }
+
+        /*
+         * Primero eliminamos todos los tokens
+         * asociados al usuario.
+         *
+         * Esto es necesario porque tokens.user_id
+         * tiene una clave foránea hacia users.id.
+         */
+
+        $tokensDeleted =
+            $this->tokenModel->deleteByUserId(
+                $id
+            );
+
+        if (!$tokensDeleted) {
+
+            $this->response(
+                500,
+                array(
+                    "success" => false,
+                    "message" =>
+                        "No fue posible eliminar los tokens del usuario"
+                )
+            );
+
+            return;
+        }
+
+        /*
+         * Ahora podemos eliminar el usuario
+         * de auth-service.
+         */
+
+        $deleted =
+            $this->userModel->delete(
+                $id
+            );
+
+        if (!$deleted) {
+
+            $this->response(
+                500,
+                array(
+                    "success" => false,
+                    "message" =>
+                        "No fue posible eliminar al usuario"
+                )
+            );
+
+            return;
+        }
+
+        $this->response(
+            200,
+            array(
+                "success" => true,
+                "message" =>
+                    "Usuario eliminado correctamente de auth-service"
+            )
+        );
+
+    } catch (PDOException $e) {
+
+        http_response_code(500);
+
+        echo json_encode(
+            array(
+                "success" => false,
+                "message" =>
+                    "Error al eliminar usuario",
+                "debug" =>
+                    $e->getMessage()
+            ),
+            JSON_UNESCAPED_UNICODE
+        );
     }
+}
 
     /*
     |--------------------------------------------------------------------------

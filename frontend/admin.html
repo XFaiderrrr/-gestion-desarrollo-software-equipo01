@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Bugistore | Administración</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <header class="navbar">
+
+        <div class="logo">
+            🎮 Bugistore
+        </div>
+
+        <nav>
+
+            <a href="admin.html">
+                Administración
+            </a>
+
+            <a href="#" id="adminName">
+                Administrador
+            </a>
+
+            <a href="#" id="adminLogout">
+                Cerrar sesión
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <main>
+
+        <section class="admin-header">
+
+            <span class="hero-tag">
+                ⚙️ PANEL DE ADMINISTRACIÓN
+            </span>
+
+            <h1>
+                Administración de Bugistore
+            </h1>
+
+            <p>
+                Gestiona usuarios, videojuegos e inventario
+                desde un solo lugar.
+            </p>
+
+        </section>
+
+
+        <section class="admin-container">
+
+            <!-- =========================
+                 VIDEOJUEGOS
+            ========================== -->
+
+            <div class="admin-section">
+
+                <div class="section-title">
+
+                    <div>
+                        <h2>
+                            🎮 Videojuegos
+                        </h2>
+
+                        <p>
+                            Gestiona el catálogo e inventario.
+                        </p>
+                    </div>
+
+                    <button
+                        id="newGameButton"
+                        class="btn btn-primary"
+                    >
+                        + Nuevo videojuego
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="gamesAdminContainer"
+                    class="admin-table-container"
+                >
+
+                    <div class="loading">
+                        Cargando videojuegos...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 USUARIOS
+            ========================== -->
+
+            <div class="admin-section">
+
+                <div class="section-title">
+
+                    <div>
+                        <h2>
+                            👥 Usuarios
+                        </h2>
+
+                        <p>
+                            Consulta y administra los usuarios.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="usersAdminContainer"
+                    class="admin-table-container"
+                >
+
+                    <div class="loading">
+                        Cargando usuarios...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 COMPRAS
+            ========================== -->
+
+            <div class="admin-section">
+
+                <div class="section-title">
+
+                    <div>
+                        <h2>
+                            🛒 Compras
+                        </h2>
+
+                        <p>
+                            Consulta las compras realizadas.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="purchasesAdminContainer"
+                    class="admin-table-container"
+                >
+
+                    <div class="loading">
+                        Cargando compras...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+
+        <p>
+            © 2026 Bugistore - Proyecto académico de microservicios
+        </p>
+
+    </footer>
+
+
+    <script src="js/admin.js"></script>
+
+</body>
+</html>

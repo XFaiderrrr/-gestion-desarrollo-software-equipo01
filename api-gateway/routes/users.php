@@ -14,15 +14,34 @@ $authorization = '';
 
 if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
 
-    $authorization = $_SERVER['HTTP_AUTHORIZATION'];
+    $authorization =
+        $_SERVER['HTTP_AUTHORIZATION'];
 
-} elseif (function_exists('getallheaders')) {
+}
+
+if (
+    $authorization === '' &&
+    isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])
+) {
+
+    $authorization =
+        $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+
+}
+
+if (
+    $authorization === '' &&
+    function_exists('getallheaders')
+) {
 
     $headers = getallheaders();
 
     foreach ($headers as $name => $value) {
 
-        if (strtolower($name) === 'authorization') {
+        if (
+            strtolower($name) ===
+            'authorization'
+        ) {
 
             $authorization = $value;
 

@@ -79,18 +79,66 @@ class AuthServiceClient
             return false;
         }
 
+        /*
+         * Obtener código HTTP de la respuesta.
+         */
+        $httpCode = 0;
+
+        if (
+            isset($http_response_header) &&
+            is_array($http_response_header)
+        ) {
+
+            foreach ($http_response_header as $header) {
+
+                if (
+                    preg_match(
+                        '/^HTTP\/\d+\.\d+\s+(\d+)/',
+                        $header,
+                        $matches
+                    )
+                ) {
+
+                    $httpCode =
+                        (int) $matches[1];
+                }
+            }
+        }
+
         $result = json_decode(
             $response,
             true
         );
 
-        if (
-            !is_array($result) ||
-            !isset($result["success"])
-        ) {
+        if (!is_array($result)) {
             return false;
         }
 
-        return $result["success"] === true;
+        /*
+         * Eliminación:
+         *
+         * 200 = eliminado correctamente.
+         * 404 = ya no existe en auth-service.
+         *
+         * En ambos casos user-service puede
+         * continuar eliminando su copia local.
+         */
+        if (
+            $query === "?action=delete-user" &&
+            $httpCode === 404
+        ) {
+
+            return true;
+        }
+
+        if (
+            isset($result["success"]) &&
+            $result["success"] === true
+        ) {
+
+            return true;
+        }
+
+        return false;
     }
 }
