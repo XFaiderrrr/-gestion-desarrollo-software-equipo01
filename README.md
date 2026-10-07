@@ -689,4 +689,4 @@ El proyecto cuenta con:
 * Panel administrativo.
 * Integración continua mediante GitHub Actions.
 
-De esta manera, Bugistore cumple con los objetivos establecidos para el proyecto académico y demuestra la implementación práctica de una arquitectura de microservicios aplicada a una tienda web de videojuegos.
+De esta manera, Bugistore cumple con los objetivos establecidos para el proyecto académico y demuestra la implementación práctica de una arquitectura de microservicios aplicada a una tienda web de videojuegos
