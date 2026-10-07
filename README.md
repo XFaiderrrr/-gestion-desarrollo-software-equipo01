@@ -329,3 +329,23 @@ El proyecto busca demostrar el funcionamiento de una aplicación distribuida med
 El proyecto utiliza GitHub Actions para validar automáticamente el código mediante compilación/validación, pruebas y generación de artefactos en cambios realizados mediante `push` y Pull Requests hacia `main`.
 
 ....
+
+Anotaciones:
+
+
+$ curl -i -X POST "http://localhost/-gestion-desarrollo-software-equipo01/game-service/public/internal.php?action=decrease-stock" \
+-H "Content-Type: application/json" \
+--data-binary '{"game_id":2,"cantidad":2}'
+HTTP/1.0 500 Internal Server Error
+Date: Tue, 29 Sep 2026 17:48:18 GMT
+Server: Apache/2.4.41 (Win64) OpenSSL/1.1.1c PHP/7.3.10
+X-Powered-By: PHP/7.3.10
+Content-Length: 0
+Connection: close
+Content-Type: application/json; charset=utf-8
+
+
+
+
+$ curl -X GET "http://localhost/-gestion-desarrollo-software-equipo01/game-service/public/?id=2"
+{"success":true,"game":{"id":"2","nombre":"Minecraft","descripcion":"Videojuego de construccion y exploracion","precio":"649.99","genero":"Sandbox","plataforma":"PC","stock":"15","imagen":"minecraft.jpg","created_at":"2026-09-29 11:32:59","updated_at":"2026-09-29 11:32:59"}}

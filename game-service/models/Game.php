@@ -194,4 +194,29 @@ class Game
             ":id" => $id
         ));
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DISMINUIR STOCK
+    |--------------------------------------------------------------------------
+    */
+
+    public function decreaseStock($id, $cantidad)
+    {
+        $sql = "
+            UPDATE games
+            SET stock = stock - :cantidad
+            WHERE id = :id
+            AND stock >= :cantidad
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute(array(
+            ":id" => $id,
+            ":cantidad" => $cantidad
+        ));
+
+        return $stmt->rowCount() > 0;
+    }
 }

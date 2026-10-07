@@ -500,6 +500,135 @@ class GameController
 
     /*
     |--------------------------------------------------------------------------
+    | DISMINUIR STOCK
+    |--------------------------------------------------------------------------
+    */
+
+    public function decreaseStock($data)
+    {
+        try {
+
+            $gameId = isset($data["game_id"])
+                ? $data["game_id"]
+                : "";
+
+            $cantidad = isset($data["cantidad"])
+                ? $data["cantidad"]
+                : "";
+
+            if ($gameId === "" || $cantidad === "") {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "game_id y cantidad son obligatorios"
+                    )
+                );
+
+                return;
+            }
+
+            if (!is_numeric($gameId) || !is_numeric($cantidad)) {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "game_id y cantidad deben ser numéricos"
+                    )
+                );
+
+                return;
+            }
+
+            $gameId = (int) $gameId;
+            $cantidad = (int) $cantidad;
+
+            if ($gameId <= 0 || $cantidad <= 0) {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "game_id y cantidad deben ser mayores a 0"
+                    )
+                );
+
+                return;
+            }
+
+            $game = $this->gameModel->findById($gameId);
+
+            if (!$game) {
+
+                $this->response(
+                    404,
+                    array(
+                        "success" => false,
+                        "message" => "Videojuego no encontrado"
+                    )
+                );
+
+                return;
+            }
+
+            if ((int) $game["stock"] < $cantidad) {
+
+                $this->response(
+                    400,
+                    array(
+                        "success" => false,
+                        "message" => "Stock insuficiente",
+                        "stock_disponible" => (int) $game["stock"]
+                    )
+                );
+
+                return;
+            }
+
+            $updated = $this->gameModel->decreaseStock(
+                $gameId,
+                $cantidad
+            );
+
+            if (!$updated) {
+
+                $this->response(
+                    500,
+                    array(
+                        "success" => false,
+                        "message" =>
+                            "No fue posible actualizar el stock"
+                    )
+                );
+
+                return;
+            }
+
+            $updatedGame = $this->gameModel->findById($gameId);
+
+            $this->response(
+                200,
+                array(
+                    "success" => true,
+                    "message" =>
+                        "Stock actualizado correctamente",
+                    "game" => $updatedGame
+                )
+            );
+
+        } catch (PDOException $e) {
+
+            $this->databaseError($e);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | ERROR DE BASE DE DATOS
     |--------------------------------------------------------------------------
     */
