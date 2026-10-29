@@ -102,7 +102,7 @@ jobs:
             DB_NAME=tienda_auth \
             DB_USER=root \
             DB_PASSWORD=root \
-            DB_DEBUG=false \
+            DB_DEBUG=true \
             USER_SERVICE_URL=http://127.0.0.1:8001/internal.php \
             php -S 127.0.0.1:8000 -t . \
               > /tmp/auth-service.log 2>&1 &
