@@ -28,10 +28,7 @@ class UserServiceClient
             "rol" => $rol
         );
 
-        return $this->request(
-            "",
-            $data
-        );
+        return $this->request("", $data);
     }
 
     public function deleteUser($authUserId)
@@ -40,10 +37,7 @@ class UserServiceClient
             "auth_user_id" => (int) $authUserId
         );
 
-        return $this->request(
-            "?action=delete",
-            $data
-        );
+        return $this->request("?action=delete", $data);
     }
 
     private function request($query, $data)
@@ -51,22 +45,25 @@ class UserServiceClient
         $url = $this->baseUrl . $query;
 
         $jsonData = json_encode($data);
+        $secret = getenv('INTERNAL_API_SECRET');
+
+        if ($secret === false || $secret === '') {
+            return false;
+        }
+
+        $headers =
+            "Content-Type: application/json\r\n" .
+            "Accept: application/json\r\n" .
+            "Content-Length: " . strlen($jsonData) . "\r\n" .
+            "X-Internal-Secret: " . $secret . "\r\n";
 
         $context = stream_context_create(
             array(
                 "http" => array(
                     "method" => "POST",
-
-                    "header" =>
-                        "Content-Type: application/json\r\n" .
-                        "Content-Length: " .
-                        strlen($jsonData) .
-                        "\r\n",
-
+                    "header" => $headers,
                     "content" => $jsonData,
-
                     "ignore_errors" => true,
-
                     "timeout" => 5
                 )
             )
@@ -82,10 +79,7 @@ class UserServiceClient
             return false;
         }
 
-        $result = json_decode(
-            $response,
-            true
-        );
+        $result = json_decode($response, true);
 
         if (
             !is_array($result) ||

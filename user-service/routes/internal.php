@@ -14,28 +14,38 @@ header(
 |--------------------------------------------------------------------------
 */
 
-$remoteAddress = isset($_SERVER["REMOTE_ADDR"])
-    ? $_SERVER["REMOTE_ADDR"]
-    : "";
+
+/*
+|--------------------------------------------------------------------------
+| Validar secreto para solicitudes internas
+|--------------------------------------------------------------------------
+*/
+
+$expectedSecret = getenv('INTERNAL_API_SECRET');
+
+$providedSecret = isset($_SERVER['HTTP_X_INTERNAL_SECRET'])
+    ? $_SERVER['HTTP_X_INTERNAL_SECRET']
+    : '';
 
 if (
-    $remoteAddress !== "127.0.0.1" &&
-    $remoteAddress !== "::1"
+    $expectedSecret === false ||
+    $expectedSecret === '' ||
+    $providedSecret === '' ||
+    !hash_equals($expectedSecret, $providedSecret)
 ) {
-
     http_response_code(403);
 
     echo json_encode(
         array(
             "success" => false,
-            "message" =>
-                "Endpoint interno no disponible"
+            "message" => "Acceso interno no autorizado"
         ),
         JSON_UNESCAPED_UNICODE
     );
 
     exit;
 }
+
 
 $database = new Database();
 

@@ -28,10 +28,7 @@ class AuthServiceClient
             "rol" => $rol
         );
 
-        return $this->request(
-            "?action=update-user",
-            $data
-        );
+        return $this->request("?action=update-user", $data);
     }
 
     public function deleteUser($authUserId)
@@ -40,33 +37,36 @@ class AuthServiceClient
             "auth_user_id" => (int) $authUserId
         );
 
-        return $this->request(
-            "?action=delete-user",
-            $data
-        );
+        return $this->request("?action=delete-user", $data);
     }
 
     private function request($query, $data)
     {
         $url = $this->baseUrl . $query;
-
         $jsonData = json_encode($data);
+        $secret = getenv('INTERNAL_API_SECRET');
+
+        if (
+            $jsonData === false ||
+            $secret === false ||
+            $secret === ''
+        ) {
+            return false;
+        }
+
+        $headers =
+            "Content-Type: application/json\r\n" .
+            "Accept: application/json\r\n" .
+            "Content-Length: " . strlen($jsonData) . "\r\n" .
+            "X-Internal-Secret: " . $secret . "\r\n";
 
         $context = stream_context_create(
             array(
                 "http" => array(
                     "method" => "POST",
-
-                    "header" =>
-                        "Content-Type: application/json\r\n" .
-                        "Content-Length: " .
-                        strlen($jsonData) .
-                        "\r\n",
-
+                    "header" => $headers,
                     "content" => $jsonData,
-
                     "ignore_errors" => true,
-
                     "timeout" => 5
                 )
             )
@@ -82,18 +82,13 @@ class AuthServiceClient
             return false;
         }
 
-        /*
-         * Obtener código HTTP de la respuesta.
-         */
         $httpCode = 0;
 
         if (
             isset($http_response_header) &&
             is_array($http_response_header)
         ) {
-
             foreach ($http_response_header as $header) {
-
                 if (
                     preg_match(
                         '/^HTTP\/\d+\.\d+\s+(\d+)/',
@@ -101,47 +96,27 @@ class AuthServiceClient
                         $matches
                     )
                 ) {
-
-                    $httpCode =
-                        (int) $matches[1];
+                    $httpCode = (int) $matches[1];
                 }
             }
         }
 
-        $result = json_decode(
-            $response,
-            true
-        );
+        $result = json_decode($response, true);
 
         if (!is_array($result)) {
             return false;
         }
 
-        /*
-         * Eliminación:
-         *
-         * 200 = eliminado correctamente.
-         * 404 = ya no existe en auth-service.
-         *
-         * En ambos casos user-service puede
-         * continuar eliminando su copia local.
-         */
+        // Si ya no existe en auth-service, permitir
+        // que user-service continúe la eliminación local.
         if (
             $query === "?action=delete-user" &&
             $httpCode === 404
         ) {
-
             return true;
         }
 
-        if (
-            isset($result["success"]) &&
-            $result["success"] === true
-        ) {
-
-            return true;
-        }
-
-        return false;
+        return isset($result["success"]) &&
+            $result["success"] === true;
     }
 }
