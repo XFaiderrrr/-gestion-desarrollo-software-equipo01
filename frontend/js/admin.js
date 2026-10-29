@@ -153,7 +153,7 @@ async function cargarVideojuegos() {
                 '<div class="empty-store">' +
                 (
                     data.message ||
-                    "No se pudo cargar el catÃ¡logo."
+                    "No se pudo cargar el catálogo."
                 ) +
                 '</div>';
 
@@ -221,7 +221,7 @@ function mostrarVideojuegos(games) {
 
                     <th>Videojuego</th>
 
-                    <th>GÃ©nero</th>
+                    <th>Género</th>
 
                     <th>Plataforma</th>
 
@@ -444,7 +444,7 @@ function mostrarFormularioNuevoVideojuego() {
                 <div class="form-group">
 
                     <label for="gameGenero">
-                        GÃ©nero
+                        Género
                     </label>
 
                     <input
@@ -522,7 +522,7 @@ function mostrarFormularioNuevoVideojuego() {
                 <div class="form-group full-width">
 
                     <label for="gameDescripcion">
-                        DescripciÃ³n
+                        Descripción
                     </label>
 
                     <textarea
@@ -686,7 +686,7 @@ async function crearVideojuego(event) {
     ) {
 
         alert(
-            "El precio no es vÃ¡lido."
+            "El precio no es válido."
         );
 
         return;
@@ -699,7 +699,7 @@ async function crearVideojuego(event) {
     ) {
 
         alert(
-            "El stock no es vÃ¡lido."
+            "El stock no es válido."
         );
 
         return;
@@ -840,7 +840,7 @@ async function editarVideojuego(gameId) {
         if (!game) {
 
             alert(
-                "No se encontrÃ³ el videojuego."
+                "No se encontró el videojuego."
             );
 
             return;
@@ -862,7 +862,7 @@ async function editarVideojuego(gameId) {
 
         const descripcion =
             prompt(
-                "DescripciÃ³n:",
+                "Descripción:",
                 game.descripcion
             );
 
@@ -888,7 +888,7 @@ async function editarVideojuego(gameId) {
 
         const genero =
             prompt(
-                "GÃ©nero:",
+                "Género:",
                 game.genero
             );
 
@@ -972,7 +972,7 @@ async function editarVideojuego(gameId) {
         ) {
 
             alert(
-                "Los campos obligatorios no pueden estar vacÃ­os."
+                "Los campos obligatorios no pueden estar vacíos."
             );
 
             return;
@@ -985,7 +985,7 @@ async function editarVideojuego(gameId) {
         ) {
 
             alert(
-                "El precio no es vÃ¡lido."
+                "El precio no es válido."
             );
 
             return;
@@ -998,7 +998,7 @@ async function editarVideojuego(gameId) {
         ) {
 
             alert(
-                "El stock no es vÃ¡lido."
+                "El stock no es válido."
             );
 
             return;
@@ -1079,7 +1079,7 @@ async function eliminarVideojuego(gameId) {
 
     const confirmar =
         confirm(
-            "Â¿EstÃ¡s seguro de eliminar este videojuego?"
+            "¿Estás seguro de eliminar este videojuego?"
         );
 
 
@@ -1482,7 +1482,7 @@ async function editarUsuario(userId) {
         if (!user) {
 
             alert(
-                "No se encontrÃ³ el usuario."
+                "No se encontró el usuario."
             );
 
             return;
@@ -1684,7 +1684,7 @@ async function eliminarUsuario(userId) {
     ) {
 
         alert(
-            "No puedes eliminar la cuenta de administrador con la que estÃ¡s conectado."
+            "No puedes eliminar la cuenta de administrador con la que estás conectado."
         );
 
         return;
@@ -1693,7 +1693,7 @@ async function eliminarUsuario(userId) {
 
     const confirmar =
         confirm(
-            "Â¿EstÃ¡s seguro de eliminar este usuario?"
+            "¿Estás seguro de eliminar este usuario?"
         );
 
 
@@ -1961,7 +1961,7 @@ function mostrarCompras(purchases, games, users) {
 
     if (!purchases || purchases.length === 0) {
         container.innerHTML =
-            '<div class="empty-store">TodavÃ­a no hay compras registradas.</div>';
+            '<div class="empty-store">Todavía no hay compras registradas.</div>';
         return;
     }
 
@@ -2079,7 +2079,7 @@ async function cargarDashboard() {
             ]);
 
         if (!gamesResponse.ok || !usersResponse.ok || !purchasesResponse.ok) {
-            throw new Error("No se pudieron consultar todas las estadÃ­sticas.");
+            throw new Error("No se pudieron consultar todas las estadísticas.");
         }
 
         const [gamesData, usersData, purchasesData] = await Promise.all([
@@ -2091,7 +2091,7 @@ async function cargarDashboard() {
         if (gamesData.success === false ||
             usersData.success === false ||
             purchasesData.success === false) {
-            throw new Error("La API devolviÃ³ un error al consultar las estadÃ­sticas.");
+            throw new Error("La API devolvió un error al consultar las estadísticas.");
         }
 
         const games = gamesData.games || gamesData.data || [];
@@ -2116,26 +2116,26 @@ async function cargarDashboard() {
         if (chartMessage) {
             chartMessage.textContent = purchases.length
                 ? "Importes agrupados por fecha de compra."
-                : "TodavÃ­a no hay compras para mostrar en la grÃ¡fica.";
+                : "Todavía no hay compras para mostrar en la gráfica.";
         }
     } catch (error) {
         console.error("Error al cargar el dashboard:", error);
 
-        statsGames.textContent = "â€”";
-        statsUsers.textContent = "â€”";
-        statsPurchases.textContent = "â€”";
-        statsSales.textContent = "â€”";
+        statsGames.textContent = "—";
+        statsUsers.textContent = "—";
+        statsPurchases.textContent = "—";
+        statsSales.textContent = "—";
 
         if (chartMessage) {
             chartMessage.textContent =
-                "No fue posible cargar las estadÃ­sticas. Revisa la conexiÃ³n y los permisos.";
+                "No fue posible cargar las estadísticas. Revisa la conexión y los permisos.";
         }
     }
 }
 
 
 /* =====================================================
-   GRÃFICA DE VENTAS
+   GRÁFICA DE VENTAS
 ===================================================== */
 
 function dibujarGraficaVentas(purchases) {

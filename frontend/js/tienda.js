@@ -86,7 +86,7 @@ try {
 
         container.innerHTML =
             '<div class="empty-store">' +
-            'No se pudo cargar el catÃ¡logo.' +
+            'No se pudo cargar el catálogo.' +
             '</div>';
 
         return;
@@ -174,12 +174,12 @@ games.forEach(function (game) {
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                         >
                         <div class="game-image-fallback">
-                            ðŸŽ®
+                            🎮
                         </div>
                       `
                     : `
                         <div class="game-image-fallback">
-                            ðŸŽ®
+                            🎮
                         </div>
                       `
             }
@@ -216,7 +216,7 @@ games.forEach(function (game) {
 
                 ${escapeHTML(
                     game.descripcion ||
-                    "Sin descripciÃ³n disponible."
+                    "Sin descripción disponible."
                 )}
 
             </p>
@@ -225,11 +225,11 @@ games.forEach(function (game) {
             <div class="game-meta">
 
                 <span>
-                    ðŸŽ® ${escapeHTML(game.genero || "Sin gÃ©nero")}
+                    🎮 ${escapeHTML(game.genero || "Sin género")}
                 </span>
 
                 <span>
-                    ðŸ’» ${escapeHTML(game.plataforma || "Sin plataforma")}
+                    💻 ${escapeHTML(game.plataforma || "Sin plataforma")}
                 </span>
 
             </div>
@@ -318,7 +318,7 @@ if (!token) {
 
 const confirmar =
     confirm(
-        "Â¿Deseas comprar este videojuego?"
+        "¿Deseas comprar este videojuego?"
     );
 
 
@@ -372,7 +372,7 @@ try {
 
 
     alert(
-        "Â¡Compra realizada correctamente!"
+        "¡Compra realizada correctamente!"
     );
 
 
@@ -431,7 +431,7 @@ logoutButton.addEventListener(
 }
 
 /* =====================================================
-SEGURIDAD BÃSICA
+SEGURIDAD BÁSICA
 ===================================================== */
 
 function escapeHTML(value) {
@@ -467,7 +467,7 @@ async function cargarMisCompras() {
 
     if (!token) {
         container.innerHTML =
-            '<p class="empty-store">Inicia sesiÃ³n para consultar tus compras.</p>';
+            '<p class="empty-store">Inicia sesión para consultar tus compras.</p>';
         return;
     }
 
@@ -516,7 +516,7 @@ function mostrarMisCompras(purchases) {
 
     if (!Array.isArray(purchases) || purchases.length === 0) {
         container.innerHTML =
-            '<p class="empty-store">TodavÃ­a no tienes compras registradas.</p>';
+            '<p class="empty-store">Todavía no tienes compras registradas.</p>';
         return;
     }
 
@@ -611,7 +611,7 @@ function actualizarEstadisticasPerfil(purchases) {
         return;
     }
 
-    // NÃºmero de registros de compra
+    // Número de registros de compra
     const totalCompras = purchases.length;
 
     // Unidades adquiridas
@@ -624,7 +624,7 @@ function actualizarEstadisticasPerfil(purchases) {
         return sum + (Number(purchase.total) || 0);
     }, 0);
 
-    // Fecha de la compra mÃ¡s reciente
+    // Fecha de la compra más reciente
     const comprasConFecha = purchases.filter(function (purchase) {
         return purchase.created_at &&
             !Number.isNaN(Date.parse(purchase.created_at));
