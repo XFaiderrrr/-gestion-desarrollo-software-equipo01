@@ -6,8 +6,13 @@ class PurchaseServiceClient
 
     public function __construct()
     {
-        $this->baseUrl =
-            'http://localhost/-gestion-desarrollo-software-equipo01/purchase-service/public/';
+        $this->baseUrl = getenv('PURCHASE_SERVICE_URL');
+
+        if ($this->baseUrl === false || $this->baseUrl === '') {
+            $this->baseUrl = 'http://localhost/-gestion-desarrollo-software-equipo01/purchase-service/public/';
+        }
+
+        $this->baseUrl = rtrim($this->baseUrl, '/') . '/';
     }
 
     public function create($data, $token)

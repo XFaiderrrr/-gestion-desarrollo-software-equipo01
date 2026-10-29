@@ -303,10 +303,58 @@ class PurchaseController
                 ? (int) $user['id']
                 : (int) $user['auth_user_id'];
 
-            $purchases =
-                $this->purchaseModel->getByUser(
-                    $authUserId
-                );
+           $purchases =
+    $this->purchaseModel->getByUser(
+        $authUserId
+    );
+
+foreach ($purchases as &$purchase) {
+
+    $gameResponse =
+        $this->gameService->getGame(
+            $purchase['game_id']
+        );
+
+    if (
+        isset($gameResponse['success']) &&
+        $gameResponse['success'] === true &&
+        isset($gameResponse['game'])
+    ) {
+
+        $game = $gameResponse['game'];
+
+        $purchase['game_nombre'] =
+            isset($game['nombre'])
+                ? $game['nombre']
+                : 'Videojuego no disponible';
+
+        $purchase['game_imagen'] =
+            isset($game['imagen'])
+                ? $game['imagen']
+                : null;
+
+        $purchase['game_genero'] =
+            isset($game['genero'])
+                ? $game['genero']
+                : null;
+
+        $purchase['game_plataforma'] =
+            isset($game['plataforma'])
+                ? $game['plataforma']
+                : null;
+
+    } else {
+
+        $purchase['game_nombre'] =
+            'Videojuego no disponible';
+
+        $purchase['game_imagen'] = null;
+        $purchase['game_genero'] = null;
+        $purchase['game_plataforma'] = null;
+    }
+}
+
+unset($purchase);
 
             return array(
                 'success' => true,

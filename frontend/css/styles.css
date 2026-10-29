@@ -1159,3 +1159,367 @@ footer {
     box-shadow:
         0 8px 20px rgba(37, 99, 235, 0.25);
 }
+/* =====================================================
+   MIS COMPRAS
+===================================================== */
+
+#misCompras {
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+#misCompras .store-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+#misCompras .store-header h2 {
+    margin-bottom: 8px;
+}
+
+#misCompras .store-header p {
+    margin: 0;
+    opacity: 0.8;
+}
+
+.purchases-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.purchases-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+    text-align: left;
+}
+
+.purchases-table th,
+.purchases-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.purchases-table th {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.purchases-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.purchases-table tbody tr:hover {
+    background-color: rgba(128, 128, 128, 0.08);
+}
+
+.purchases-table td:nth-child(3),
+.purchases-table td:nth-child(4) {
+    white-space: nowrap;
+}
+
+#purchasesContainer .empty-store,
+#purchasesContainer .loading {
+    padding: 24px;
+    text-align: center;
+    border-radius: 10px;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+@media (max-width: 600px) {
+    #misCompras .store-header {
+        align-items: flex-start;
+    }
+
+    #misCompras .store-header .btn {
+        width: 100%;
+    }
+
+    .purchases-table th,
+    .purchases-table td {
+        padding: 12px;
+    }
+}
+/* =========================
+   PERFIL DEL USUARIO
+========================= */
+
+.profile-container {
+    max-width: 1200px;
+    margin: 35px auto;
+    padding: 0 25px;
+}
+
+.profile-header {
+    margin-bottom: 25px;
+}
+
+.profile-header h2 {
+    font-size: 30px;
+    margin: 12px 0;
+    color: #f8fafc;
+}
+
+.profile-header p {
+    color: #94a3b8;
+    line-height: 1.6;
+}
+
+.profile-user-card {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 28px;
+    margin-bottom: 25px;
+    background: #111827;
+    border: 1px solid #263449;
+    border-radius: 16px;
+}
+
+.profile-avatar {
+    width: 82px;
+    height: 82px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #1e3a8a;
+    border: 2px solid #3b82f6;
+    font-size: 38px;
+}
+
+.profile-user-info h3 {
+    margin-bottom: 8px;
+    color: #f8fafc;
+    font-size: 24px;
+    overflow-wrap: anywhere;
+}
+
+.profile-user-info p {
+    color: #cbd5e1;
+    margin-bottom: 12px;
+    overflow-wrap: anywhere;
+}
+
+.profile-member-label {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 20px;
+    background: #172554;
+    color: #93c5fd;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.profile-stat-card {
+    min-width: 0;
+    padding: 24px;
+    background: #111827;
+    border: 1px solid #263449;
+    border-radius: 14px;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.profile-stat-card:hover {
+    border-color: #3b82f6;
+    transform: translateY(-3px);
+}
+
+.profile-stat-icon {
+    display: block;
+    margin-bottom: 16px;
+    font-size: 28px;
+}
+
+.profile-stat-card p {
+    margin-bottom: 12px;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.profile-stat-card strong {
+    display: block;
+    color: #60a5fa;
+    font-size: 27px;
+    overflow-wrap: anywhere;
+}
+
+#profileLastPurchase {
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+/* =========================
+   PERFIL RESPONSIVO
+========================= */
+
+@media (max-width: 900px) {
+    .profile-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .profile-container {
+        margin: 25px auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .profile-container {
+        padding: 0 16px;
+    }
+
+    .profile-user-card {
+        align-items: flex-start;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .profile-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+
+    .profile-user-info h3 {
+        font-size: 20px;
+    }
+
+    .profile-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .profile-stat-card {
+        padding: 20px;
+    }
+}
+
+/* =====================================================
+   DASHBOARD ADMINISTRATIVO - BUGISTORE
+===================================================== */
+
+.admin-dashboard {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 35px 25px 10px;
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 30px;
+}
+
+.dashboard-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    padding: 24px 20px;
+    background: #111827;
+    border: 1px solid #263449;
+    border-radius: 14px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-card:hover {
+    border-color: #3b82f6;
+    transform: translateY(-3px);
+}
+
+.dashboard-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: #172554;
+    font-size: 27px;
+}
+
+.dashboard-card p {
+    margin-bottom: 9px;
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.dashboard-card h3 {
+    color: #60a5fa;
+    font-size: 27px;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-chart {
+    margin-bottom: 35px;
+    padding: 25px;
+    background: #111827;
+    border: 1px solid #263449;
+    border-radius: 14px;
+}
+
+.dashboard-chart-container {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    min-width: 0;
+}
+
+.dashboard-chart-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.chart-message {
+    margin-top: 12px;
+    color: #94a3b8;
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 1000px) {
+    .dashboard-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-dashboard {
+        padding: 25px 16px 5px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .dashboard-card {
+        padding: 20px;
+    }
+
+    .dashboard-chart {
+        padding: 18px 12px;
+    }
+
+    .dashboard-chart-container {
+        height: 250px;
+    }
+}

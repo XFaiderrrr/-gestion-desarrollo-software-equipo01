@@ -6,8 +6,13 @@ class GameServiceClient
 
     public function __construct()
     {
-        $this->baseUrl =
-            'http://localhost/-gestion-desarrollo-software-equipo01/game-service/public/';
+        $this->baseUrl = getenv('GAME_SERVICE_URL');
+
+        if ($this->baseUrl === false || $this->baseUrl === '') {
+            $this->baseUrl = 'http://localhost/-gestion-desarrollo-software-equipo01/game-service/public/';
+        }
+
+        $this->baseUrl = rtrim($this->baseUrl, '/') . '/';
     }
 
     public function getAll()

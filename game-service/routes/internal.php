@@ -4,16 +4,19 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/Game.php';
 require_once __DIR__ . '/../controllers/GameController.php';
 
-$allowedIps = array(
-    '127.0.0.1',
-    '::1'
-);
 
-$remoteAddress = isset($_SERVER['REMOTE_ADDR'])
-    ? $_SERVER['REMOTE_ADDR']
+$expectedSecret = getenv('INTERNAL_API_SECRET');
+
+$providedSecret = isset($_SERVER['HTTP_X_INTERNAL_SECRET'])
+    ? $_SERVER['HTTP_X_INTERNAL_SECRET']
     : '';
 
-if (!in_array($remoteAddress, $allowedIps, true)) {
+if (
+    $expectedSecret === false ||
+    $expectedSecret === '' ||
+    $providedSecret === '' ||
+    !hash_equals($expectedSecret, $providedSecret)
+) {
     http_response_code(403);
 
     echo json_encode(
@@ -25,6 +28,7 @@ if (!in_array($remoteAddress, $allowedIps, true)) {
 
     exit;
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

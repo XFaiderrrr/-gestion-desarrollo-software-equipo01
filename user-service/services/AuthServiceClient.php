@@ -6,10 +6,13 @@ class AuthServiceClient
 
     public function __construct()
     {
-        $this->baseUrl =
-            "http://localhost/" .
-            "-gestion-desarrollo-software-equipo01/" .
-            "auth-service/public/internal.php";
+        $this->baseUrl = getenv('AUTH_SERVICE_INTERNAL_URL');
+
+        if ($this->baseUrl === false || $this->baseUrl === '') {
+            $this->baseUrl = "http://localhost/-gestion-desarrollo-software-equipo01/auth-service/public/internal.php";
+        }
+
+        $this->baseUrl = rtrim($this->baseUrl, '/');
     }
 
     public function updateUser(

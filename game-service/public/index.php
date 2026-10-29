@@ -1,3 +1,3 @@
 <?php
 
-require_once "../routes/games.php";
+require_once __DIR__ . '/../routes/games.php';

@@ -6,8 +6,13 @@ class GameServiceClient
 
     public function __construct()
     {
-        $this->baseUrl =
-            'http://localhost/-gestion-desarrollo-software-equipo01/game-service/public/';
+        $this->baseUrl = getenv('GAME_SERVICE_URL');
+
+        if ($this->baseUrl === false || $this->baseUrl === '') {
+            $this->baseUrl = 'http://localhost/-gestion-desarrollo-software-equipo01/game-service/public/';
+        }
+
+        $this->baseUrl = rtrim($this->baseUrl, '/') . '/';
     }
 
     public function getGame($gameId)
@@ -91,52 +96,67 @@ class GameServiceClient
         );
     }
 
-    private function request($method, $url, $data = null)
-    {
-        $options = array(
-            'http' => array(
-                'method' => $method,
-                'header' =>
-                    "Content-Type: application/json\r\n" .
-                    "Accept: application/json\r\n",
-                'ignore_errors' => true
-            )
-        );
 
-        if ($data !== null) {
-            $options['http']['content'] =
-                json_encode($data);
-        }
 
-        $context = stream_context_create($options);
+private function request($method, $url, $data = null)
+{
+    $headers =
+        "Content-Type: application/json\r\n" .
+        "Accept: application/json\r\n";
 
-        $result = @file_get_contents(
-            $url,
-            false,
-            $context
-        );
+    if (
+        $method === 'POST' &&
+        strpos($url, 'internal.php?action=decrease-stock') !== false
+    ) {
+        $secret = getenv('INTERNAL_API_SECRET');
 
-        if ($result === false) {
+        if ($secret === false || $secret === '') {
             return array(
                 'success' => false,
-                'message' =>
-                    'No se pudo comunicar con game-service'
+                'message' => 'Falta configurar la autorizacion interna'
             );
         }
 
-        $decoded = json_decode(
-            $result,
-            true
-        );
-
-        if (!is_array($decoded)) {
-            return array(
-                'success' => false,
-                'message' =>
-                    'Respuesta invalida de game-service'
-            );
-        }
-
-        return $decoded;
+        $headers .= "X-Internal-Secret: " . $secret . "\r\n";
     }
+
+    $options = array(
+        'http' => array(
+            'method' => $method,
+            'header' => $headers,
+            'ignore_errors' => true
+        )
+    );
+
+    if ($data !== null) {
+        $options['http']['content'] = json_encode($data);
+    }
+
+    $context = stream_context_create($options);
+
+    $result = @file_get_contents(
+        $url,
+        false,
+        $context
+    );
+
+    if ($result === false) {
+        return array(
+            'success' => false,
+            'message' => 'No se pudo comunicar con game-service'
+        );
+    }
+
+    $decoded = json_decode($result, true);
+
+    if (!is_array($decoded)) {
+        return array(
+            'success' => false,
+            'message' => 'Respuesta invalida de game-service'
+        );
+    }
+
+    return $decoded;
+}
+
 }

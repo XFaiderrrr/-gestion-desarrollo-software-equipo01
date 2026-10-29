@@ -15,6 +15,10 @@ document.addEventListener(
 
         cargarUsuarios();
 
+        cargarCompras();
+
+        cargarDashboard();
+
         configurarFormulario();
 
         configurarLogout();
@@ -149,7 +153,7 @@ async function cargarVideojuegos() {
                 '<div class="empty-store">' +
                 (
                     data.message ||
-                    "No se pudo cargar el catálogo."
+                    "No se pudo cargar el catÃ¡logo."
                 ) +
                 '</div>';
 
@@ -217,7 +221,7 @@ function mostrarVideojuegos(games) {
 
                     <th>Videojuego</th>
 
-                    <th>Género</th>
+                    <th>GÃ©nero</th>
 
                     <th>Plataforma</th>
 
@@ -440,7 +444,7 @@ function mostrarFormularioNuevoVideojuego() {
                 <div class="form-group">
 
                     <label for="gameGenero">
-                        Género
+                        GÃ©nero
                     </label>
 
                     <input
@@ -518,7 +522,7 @@ function mostrarFormularioNuevoVideojuego() {
                 <div class="form-group full-width">
 
                     <label for="gameDescripcion">
-                        Descripción
+                        DescripciÃ³n
                     </label>
 
                     <textarea
@@ -682,7 +686,7 @@ async function crearVideojuego(event) {
     ) {
 
         alert(
-            "El precio no es válido."
+            "El precio no es vÃ¡lido."
         );
 
         return;
@@ -695,7 +699,7 @@ async function crearVideojuego(event) {
     ) {
 
         alert(
-            "El stock no es válido."
+            "El stock no es vÃ¡lido."
         );
 
         return;
@@ -836,7 +840,7 @@ async function editarVideojuego(gameId) {
         if (!game) {
 
             alert(
-                "No se encontró el videojuego."
+                "No se encontrÃ³ el videojuego."
             );
 
             return;
@@ -858,7 +862,7 @@ async function editarVideojuego(gameId) {
 
         const descripcion =
             prompt(
-                "Descripción:",
+                "DescripciÃ³n:",
                 game.descripcion
             );
 
@@ -884,7 +888,7 @@ async function editarVideojuego(gameId) {
 
         const genero =
             prompt(
-                "Género:",
+                "GÃ©nero:",
                 game.genero
             );
 
@@ -968,7 +972,7 @@ async function editarVideojuego(gameId) {
         ) {
 
             alert(
-                "Los campos obligatorios no pueden estar vacíos."
+                "Los campos obligatorios no pueden estar vacÃ­os."
             );
 
             return;
@@ -981,7 +985,7 @@ async function editarVideojuego(gameId) {
         ) {
 
             alert(
-                "El precio no es válido."
+                "El precio no es vÃ¡lido."
             );
 
             return;
@@ -994,7 +998,7 @@ async function editarVideojuego(gameId) {
         ) {
 
             alert(
-                "El stock no es válido."
+                "El stock no es vÃ¡lido."
             );
 
             return;
@@ -1075,7 +1079,7 @@ async function eliminarVideojuego(gameId) {
 
     const confirmar =
         confirm(
-            "¿Estás seguro de eliminar este videojuego?"
+            "Â¿EstÃ¡s seguro de eliminar este videojuego?"
         );
 
 
@@ -1478,7 +1482,7 @@ async function editarUsuario(userId) {
         if (!user) {
 
             alert(
-                "No se encontró el usuario."
+                "No se encontrÃ³ el usuario."
             );
 
             return;
@@ -1680,7 +1684,7 @@ async function eliminarUsuario(userId) {
     ) {
 
         alert(
-            "No puedes eliminar la cuenta de administrador con la que estás conectado."
+            "No puedes eliminar la cuenta de administrador con la que estÃ¡s conectado."
         );
 
         return;
@@ -1689,7 +1693,7 @@ async function eliminarUsuario(userId) {
 
     const confirmar =
         confirm(
-            "¿Estás seguro de eliminar este usuario?"
+            "Â¿EstÃ¡s seguro de eliminar este usuario?"
         );
 
 
@@ -1858,4 +1862,446 @@ function escapeHTML(value) {
             /'/g,
             "&#039;"
         );
+}
+
+/* =====================================================
+   COMPRAS
+===================================================== */
+
+
+async function cargarCompras() {
+    const container = document.getElementById("purchasesAdminContainer");
+
+    if (!container) return;
+
+    container.innerHTML =
+        '<div class="loading">Cargando compras...</div>';
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    try {
+        const headers = {
+            "Authorization": "Bearer " + token
+        };
+
+        const [purchasesResponse, gamesResponse, usersResponse] =
+            await Promise.all([
+                fetch(
+                    ADMIN_API + "?action=purchases&purchase_action=all",
+                    { method: "GET", headers }
+                ),
+                fetch(
+                    ADMIN_API + "?action=games&game_action=all"
+                ),
+                fetch(
+                    ADMIN_API + "?action=users&user_action=all",
+                    { method: "GET", headers }
+                )
+            ]);
+
+        const [purchasesData, gamesData, usersData] =
+            await Promise.all([
+                purchasesResponse.json(),
+                gamesResponse.json(),
+                usersResponse.json()
+            ]);
+
+        if (!purchasesResponse.ok || !purchasesData.success) {
+            throw new Error(
+                purchasesData.message || "No se pudieron cargar las compras."
+            );
+        }
+
+        if (!gamesResponse.ok || !gamesData.success) {
+            throw new Error(
+                gamesData.message || "No se pudieron cargar los videojuegos."
+            );
+        }
+
+        if (!usersResponse.ok || !usersData.success) {
+            throw new Error(
+                usersData.message || "No se pudieron cargar los usuarios."
+            );
+        }
+
+        const purchases = purchasesData.purchases || [];
+        const games = gamesData.games || gamesData.data || [];
+        const users = usersData.users || usersData.data || [];
+
+        mostrarCompras(purchases, games, users);
+
+    } catch (error) {
+        console.error("Error al cargar compras:", error);
+
+        container.innerHTML =
+            '<div class="empty-store">' +
+            escapeHTML(
+                error.message || "No se pudieron cargar los datos de las compras."
+            ) +
+            '</div>';
+    }
+}
+
+
+
+/* =====================================================
+   MOSTRAR COMPRAS
+===================================================== */
+
+
+function mostrarCompras(purchases, games, users) {
+    const container = document.getElementById("purchasesAdminContainer");
+
+    if (!container) return;
+
+    if (!purchases || purchases.length === 0) {
+        container.innerHTML =
+            '<div class="empty-store">TodavÃ­a no hay compras registradas.</div>';
+        return;
+    }
+
+    games = games || [];
+    users = users || [];
+
+    let html = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID compra</th>
+                    <th>Comprador</th>
+                    <th>Correo</th>
+                    <th>Videojuego</th>
+                    <th>Cantidad</th>
+                    <th>Precio unitario</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    purchases.forEach(function (purchase) {
+        const user = users.find(function (item) {
+            return Number(item.auth_user_id) ===
+                Number(purchase.auth_user_id);
+        });
+
+        const game = games.find(function (item) {
+            return Number(item.id) === Number(purchase.game_id);
+        });
+
+        const comprador = user
+            ? user.nombre
+            : "Usuario #" + purchase.auth_user_id;
+
+        const correo = user
+            ? user.email
+            : "No disponible";
+
+        const videojuego = game
+            ? game.nombre
+            : "Videojuego #" + purchase.game_id;
+
+        const total = Number(purchase.total || 0);
+        const precio = Number(purchase.precio_unitario || 0);
+        const cantidad = Number(purchase.cantidad || 0);
+        const estado = purchase.estado || "Sin estado";
+
+        const fecha = purchase.created_at
+            ? new Date(
+                String(purchase.created_at).replace(" ", "T")
+            ).toLocaleString("es-MX")
+            : "No disponible";
+
+        html += `
+            <tr>
+                <td>${escapeHTML(purchase.id)}</td>
+                <td><strong>${escapeHTML(comprador)}</strong></td>
+                <td>${escapeHTML(correo)}</td>
+                <td>${escapeHTML(videojuego)}</td>
+                <td>${cantidad}</td>
+                <td>$${precio.toFixed(2)}</td>
+                <td><strong>$${total.toFixed(2)}</strong></td>
+                <td>${escapeHTML(estado)}</td>
+                <td>${escapeHTML(fecha)}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    container.innerHTML = html;
+}
+
+
+/* =====================================================
+   DASHBOARD ADMINISTRATIVO
+===================================================== */
+
+async function cargarDashboard() {
+    const token = localStorage.getItem("token");
+
+    const statsGames = document.getElementById("statsGames");
+    const statsUsers = document.getElementById("statsUsers");
+    const statsPurchases = document.getElementById("statsPurchases");
+    const statsSales = document.getElementById("statsSales");
+    const chartMessage = document.getElementById("salesChartMessage");
+
+    if (!statsGames || !statsUsers || !statsPurchases || !statsSales) {
+        return;
+    }
+
+    try {
+        const headers = token
+            ? { "Authorization": "Bearer " + token }
+            : {};
+
+        const [gamesResponse, usersResponse, purchasesResponse] =
+            await Promise.all([
+                fetch(ADMIN_API + "?action=games&game_action=all"),
+                fetch(ADMIN_API + "?action=users&user_action=all", {
+                    method: "GET",
+                    headers: headers
+                }),
+                fetch(ADMIN_API + "?action=purchases&purchase_action=all", {
+                    method: "GET",
+                    headers: headers
+                })
+            ]);
+
+        if (!gamesResponse.ok || !usersResponse.ok || !purchasesResponse.ok) {
+            throw new Error("No se pudieron consultar todas las estadÃ­sticas.");
+        }
+
+        const [gamesData, usersData, purchasesData] = await Promise.all([
+            gamesResponse.json(),
+            usersResponse.json(),
+            purchasesResponse.json()
+        ]);
+
+        if (gamesData.success === false ||
+            usersData.success === false ||
+            purchasesData.success === false) {
+            throw new Error("La API devolviÃ³ un error al consultar las estadÃ­sticas.");
+        }
+
+        const games = gamesData.games || gamesData.data || [];
+        const users = usersData.users || usersData.data || [];
+        const purchases = purchasesData.purchases || purchasesData.data || [];
+
+        const totalSales = purchases.reduce(function (sum, purchase) {
+            return sum + Number(purchase.total || 0);
+        }, 0);
+
+        statsGames.textContent = games.length.toLocaleString("es-MX");
+        statsUsers.textContent = users.length.toLocaleString("es-MX");
+        statsPurchases.textContent = purchases.length.toLocaleString("es-MX");
+
+        statsSales.textContent = totalSales.toLocaleString("es-MX", {
+            style: "currency",
+            currency: "MXN"
+        });
+
+        dibujarGraficaVentas(purchases);
+
+        if (chartMessage) {
+            chartMessage.textContent = purchases.length
+                ? "Importes agrupados por fecha de compra."
+                : "TodavÃ­a no hay compras para mostrar en la grÃ¡fica.";
+        }
+    } catch (error) {
+        console.error("Error al cargar el dashboard:", error);
+
+        statsGames.textContent = "â€”";
+        statsUsers.textContent = "â€”";
+        statsPurchases.textContent = "â€”";
+        statsSales.textContent = "â€”";
+
+        if (chartMessage) {
+            chartMessage.textContent =
+                "No fue posible cargar las estadÃ­sticas. Revisa la conexiÃ³n y los permisos.";
+        }
+    }
+}
+
+
+/* =====================================================
+   GRÃFICA DE VENTAS
+===================================================== */
+
+function dibujarGraficaVentas(purchases) {
+    const canvas = document.getElementById("salesChart");
+
+    if (!canvas) return;
+
+    const container = canvas.parentElement;
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx || !container) return;
+
+    function dibujar() {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        if (!width || !height) return;
+
+        const pixelRatio = window.devicePixelRatio || 1;
+
+        canvas.width = Math.round(width * pixelRatio);
+        canvas.height = Math.round(height * pixelRatio);
+
+        ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+
+        const styles = getComputedStyle(document.body);
+        const textColor = "#94a3b8";
+        const gridColor = "#263449";
+        const lineColor = "#60a5fa";
+
+        const ventasPorFecha = {};
+
+        purchases.forEach(function (purchase) {
+            if (!purchase.created_at) return;
+
+            const fechaTexto = String(purchase.created_at).slice(0, 10);
+
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)) return;
+
+            const total = Number(purchase.total || 0);
+
+            if (!Number.isFinite(total)) return;
+
+            ventasPorFecha[fechaTexto] =
+                (ventasPorFecha[fechaTexto] || 0) + total;
+        });
+
+        const fechas = Object.keys(ventasPorFecha).sort();
+
+        const margen = { top: 20, right: 20, bottom: 42, left: 65 };
+        const chartWidth = width - margen.left - margen.right;
+        const chartHeight = height - margen.top - margen.bottom;
+
+        if (chartWidth <= 0 || chartHeight <= 0) return;
+
+        ctx.font = "12px Arial";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+
+        ctx.fillStyle = textColor;
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+
+        if (!fechas.length) {
+            ctx.textAlign = "center";
+            ctx.fillText(
+                "Sin datos de ventas por fecha",
+                width / 2,
+                height / 2
+            );
+            return;
+        }
+
+        const maxVenta = Math.max(
+            1,
+            ...fechas.map(function (fecha) {
+                return ventasPorFecha[fecha];
+            })
+        );
+
+        const maxEscala = maxVenta * 1.15;
+        const divisiones = 4;
+
+        for (let i = 0; i <= divisiones; i++) {
+            const valor = maxEscala * (1 - i / divisiones);
+            const y = margen.top + chartHeight * i / divisiones;
+
+            ctx.beginPath();
+            ctx.moveTo(margen.left, y);
+            ctx.lineTo(width - margen.right, y);
+            ctx.stroke();
+
+            ctx.fillStyle = textColor;
+            ctx.textAlign = "right";
+            ctx.fillText(
+                "$" + valor.toLocaleString("es-MX", {
+                    maximumFractionDigits: 0
+                }),
+                margen.left - 10,
+                y
+            );
+        }
+
+        const puntos = fechas.map(function (fecha, index) {
+            const x = fechas.length === 1
+                ? margen.left + chartWidth / 2
+                : margen.left + index * chartWidth / (fechas.length - 1);
+
+            const y = margen.top +
+                chartHeight *
+                (1 - ventasPorFecha[fecha] / maxEscala);
+
+            return { x: x, y: y, fecha: fecha };
+        });
+
+        ctx.beginPath();
+
+        puntos.forEach(function (punto, index) {
+            if (index === 0) {
+                ctx.moveTo(punto.x, punto.y);
+            } else {
+                ctx.lineTo(punto.x, punto.y);
+            }
+        });
+
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        puntos.forEach(function (punto, index) {
+            ctx.beginPath();
+            ctx.arc(punto.x, punto.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = lineColor;
+            ctx.fill();
+
+            if (
+                fechas.length <= 10 ||
+                index === 0 ||
+                index === fechas.length - 1 ||
+                index % Math.ceil(fechas.length / 6) === 0
+            ) {
+                const partes = punto.fecha.split("-");
+                const etiqueta = partes[2] + "/" + partes[1];
+
+                ctx.fillStyle = textColor;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "top";
+                ctx.fillText(
+                    etiqueta,
+                    punto.x,
+                    height - margen.bottom + 12
+                );
+            }
+        });
+    }
+
+    dibujar();
+
+    if (canvas._dashboardResizeHandler) {
+        window.removeEventListener(
+            "resize",
+            canvas._dashboardResizeHandler
+        );
+    }
+
+    canvas._dashboardResizeHandler = dibujar;
+    window.addEventListener("resize", dibujar);
 }

@@ -27,3 +27,14 @@ dist/
 # Archivos temporales del Sistema Operativo
 .DS_Store
 Thumbs.db
+# Respaldo local previo a la migracion Docker
+/bugistore-before-migration.sql
+/auth-data.sql
+/user-profiles-data.sql
+/purchases-data.sql
+
+# Respaldos locales y archivos de backup
+*.bak
+*-backup.*
+*backup*.html
+*backup*.js

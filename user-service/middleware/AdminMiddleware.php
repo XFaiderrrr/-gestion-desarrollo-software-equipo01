@@ -6,8 +6,13 @@ class AdminMiddleware
 
     public function __construct()
     {
-        $this->authUrl =
-            "http://localhost/-gestion-desarrollo-software-equipo01/auth-service/public/?action=validate";
+        $baseUrl = getenv('AUTH_SERVICE_URL');
+
+        if ($baseUrl === false || $baseUrl === '') {
+            $baseUrl = "http://localhost/-gestion-desarrollo-software-equipo01/auth-service/public/";
+        }
+
+        $this->authUrl = rtrim($baseUrl, '/') . '/?action=validate';
     }
 
     public function authenticateAdmin()

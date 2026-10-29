@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,87 +12,169 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111111">
     <link rel="apple-touch-icon" href="images/icons/icon-192.png">
-
 </head>
 
 <body>
 
     <header class="navbar">
-
         <div class="logo">
             🎮 Bugistore
         </div>
 
         <nav>
+            <a href="tienda.html">Tienda</a>
+            <a href="#miPerfil">Mi perfil</a>
+            <a href="#misCompras">Mis compras</a>
 
-            <a href="tienda.html">
-                Tienda
-            </a>
-
-            <a href="#" id="userName">
-                Usuario
-            </a>
-
-            <a href="#" id="logoutButton">
-                Cerrar sesión
-            </a>
-
+            <a href="#" id="userName">Usuario</a>
+            <a href="#" id="logoutButton">Cerrar sesión</a>
         </nav>
-
     </header>
-
 
     <main>
 
+        <!-- ENCABEZADO DEL CATÁLOGO -->
         <section class="store-header">
-
             <div>
+                <span class="hero-tag">🎮 CATÁLOGO</span>
 
-                <span class="hero-tag">
-                    🎮 CATÁLOGO
-                </span>
-
-                <h1>
-                    Videojuegos disponibles
-                </h1>
+                <h1>Videojuegos disponibles</h1>
 
                 <p>
                     Explora nuestro catálogo y encuentra
                     tu próximo videojuego.
                 </p>
+            </div>
+        </section>
+
+        <!-- PERFIL DEL USUARIO -->
+        <section class="profile-container" id="miPerfil">
+
+            <div class="profile-header">
+                <div>
+                    <span class="hero-tag">MI CUENTA</span>
+
+                    <h2>Mi perfil</h2>
+
+                    <p>
+                        Consulta tus datos personales y tu actividad en Bugistore.
+                    </p>
+                </div>
+            </div>
+
+            <!-- DATOS PERSONALES -->
+            <div class="profile-user-card">
+
+                <div class="profile-avatar" aria-hidden="true">
+                    👤
+                </div>
+
+                <div class="profile-user-info">
+                    <h3 id="profileName">Cargando usuario...</h3>
+
+                    <p id="profileEmail">
+                        Correo no disponible
+                    </p>
+
+                    <span class="profile-member-label">
+                        Miembro de Bugistore
+                    </span>
+                </div>
+
+            </div>
+
+            <!-- ESTADÍSTICAS DE COMPRAS -->
+            <div class="profile-stats-grid">
+
+                <article class="profile-stat-card">
+                    <span class="profile-stat-icon">🛒</span>
+
+                    <p>Compras realizadas</p>
+
+                    <strong id="profilePurchases">0</strong>
+                </article>
+
+                <article class="profile-stat-card">
+                    <span class="profile-stat-icon">🎮</span>
+
+                    <p>Unidades adquiridas</p>
+
+                    <strong id="profileUnits">0</strong>
+                </article>
+
+                <article class="profile-stat-card">
+                    <span class="profile-stat-icon">💰</span>
+
+                    <p>Total gastado</p>
+
+                    <strong id="profileSpent">$0.00</strong>
+                </article>
+
+                <article class="profile-stat-card">
+                    <span class="profile-stat-icon">📅</span>
+
+                    <p>Última compra</p>
+
+                    <strong id="profileLastPurchase">Sin compras</strong>
+                </article>
 
             </div>
 
         </section>
 
-
+        <!-- CATÁLOGO DE VIDEOJUEGOS -->
         <section class="store-container">
 
-            <div id="gamesContainer"
-                 class="games-grid">
-
+            <div id="gamesContainer" class="games-grid">
                 <div class="loading">
                     Cargando videojuegos...
                 </div>
+            </div>
 
+        </section>
+
+        <!-- HISTORIAL DE COMPRAS -->
+        <section class="store-container" id="misCompras">
+
+            <div class="store-header">
+                <div>
+                    <h2>Mis compras</h2>
+
+                    <p>
+                        Consulta los videojuegos que has comprado.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="reloadPurchasesButton">
+                    Actualizar historial
+                </button>
+            </div>
+
+            <div id="purchasesContainer">
+                <p class="loading">
+                    Cargando historial...
+                </p>
             </div>
 
         </section>
 
     </main>
 
-
+    <!-- PIE DE PÁGINA -->
     <footer>
-
         <p>
             © 2026 Bugistore - Proyecto académico de microservicios
         </p>
-
     </footer>
 
-
+    <!-- SCRIPTS -->
     <script src="js/auth.js"></script>
     <script src="js/tienda.js"></script>
     <script src="js/pwa.js"></script>
+
 </body>
 </html>
+```

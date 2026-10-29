@@ -1,0 +1,139 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en .env}
+      MYSQL_ROOT_HOST: "%"
+    volumes:
+      - bugistore_mysql_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    networks:
+      - backend
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: docker/php-service.Dockerfile
+      args:
+        SERVICE_DIR: auth-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_NAME: tienda_auth
+      DB_USER: bugistore_app
+      DB_PASSWORD: ${MYSQL_APP_PASSWORD:?Define MYSQL_APP_PASSWORD en .env}
+      DB_DEBUG: ${DB_DEBUG:-false}
+      USER_SERVICE_URL: http://user-service/public/internal.php
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - backend
+
+  user-service:
+    build:
+      context: .
+      dockerfile: docker/php-service.Dockerfile
+      args:
+        SERVICE_DIR: user-service
+    restart: unless-stopped
+    environment:
+      USER_DB_HOST: mysql
+      USER_DB_NAME: tienda_users
+      USER_DB_USER: bugistore_app
+      USER_DB_PASSWORD: ${MYSQL_APP_PASSWORD:?Define MYSQL_APP_PASSWORD en .env}
+      AUTH_SERVICE_URL: http://auth-service/public
+      AUTH_SERVICE_INTERNAL_URL: http://auth-service/public/internal.php
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - backend
+
+  game-service:
+    build:
+      context: .
+      dockerfile: docker/php-service.Dockerfile
+      args:
+        SERVICE_DIR: game-service
+    restart: unless-stopped
+    environment:
+      GAME_DB_HOST: mysql
+      GAME_DB_NAME: tienda_games
+      GAME_DB_USER: bugistore_app
+      GAME_DB_PASSWORD: ${MYSQL_APP_PASSWORD:?Define MYSQL_APP_PASSWORD en .env}
+      AUTH_SERVICE_URL: http://auth-service/public
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:?Define INTERNAL_API_SECRET en .env}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - backend
+
+  purchase-service:
+    build:
+      context: .
+      dockerfile: docker/php-service.Dockerfile
+      args:
+        SERVICE_DIR: purchase-service
+    restart: unless-stopped
+    environment:
+      PURCHASE_DB_HOST: mysql
+      PURCHASE_DB_NAME: tienda_purchases
+      PURCHASE_DB_USER: bugistore_app
+      PURCHASE_DB_PASSWORD: ${MYSQL_APP_PASSWORD:?Define MYSQL_APP_PASSWORD en .env}
+      AUTH_SERVICE_URL: http://auth-service/public/
+      GAME_SERVICE_URL: http://game-service/public/
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:?Define INTERNAL_API_SECRET en .env}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - backend
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: docker/php-service.Dockerfile
+      args:
+        SERVICE_DIR: api-gateway
+    restart: unless-stopped
+    environment:
+      AUTH_SERVICE_URL: http://auth-service/public/
+      USER_SERVICE_URL: http://user-service/public/
+      GAME_SERVICE_URL: http://game-service/public/
+      PURCHASE_SERVICE_URL: http://purchase-service/public/
+    depends_on:
+      - auth-service
+      - user-service
+      - game-service
+      - purchase-service
+    networks:
+      - backend
+
+  frontend:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api-gateway
+    networks:
+      - backend
+
+volumes:
+  bugistore_mysql_data:
+
+networks:
+  backend:
+    driver: bridge

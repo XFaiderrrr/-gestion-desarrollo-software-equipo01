@@ -6,8 +6,13 @@ class AuthMiddleware
 
     public function __construct()
     {
-        $this->authServiceUrl =
-            'http://localhost/-gestion-desarrollo-software-equipo01/auth-service/public/';
+        $this->authServiceUrl = getenv('AUTH_SERVICE_URL');
+
+        if ($this->authServiceUrl === false || $this->authServiceUrl === '') {
+            $this->authServiceUrl = 'http://localhost/-gestion-desarrollo-software-equipo01/auth-service/public/';
+        }
+
+        $this->authServiceUrl = rtrim($this->authServiceUrl, '/') . '/';
     }
 
     public function authenticate()

@@ -1,3 +1,3 @@
 <?php
 
-require_once "../routes/users.php";
+require_once __DIR__ . '/../routes/users.php';

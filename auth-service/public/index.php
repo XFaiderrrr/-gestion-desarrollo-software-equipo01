@@ -1,3 +1,3 @@
 <?php
 
-require_once "../routes/auth.php";
+require_once __DIR__ . '/../routes/auth.php';
