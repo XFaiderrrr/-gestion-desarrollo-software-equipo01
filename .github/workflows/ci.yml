@@ -21,7 +21,7 @@ jobs:
       DB_NAME: tienda_auth
       DB_USER: root
       DB_PASSWORD: root
-      DB_DEBUG: "false"
+      DB_DEBUG: "true"
 
     services:
       mysql:
