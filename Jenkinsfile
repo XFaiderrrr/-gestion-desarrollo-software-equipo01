@@ -12,6 +12,7 @@ pipeline {
         DOCKER_EXE = 'C:\\Users\\ivanu\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
         DOCKERHUB_REPO = 'ivanlara30'
         IMAGE_TAG = "jenkins-${BUILD_NUMBER}"
+        DOCKER_CONFIG = 'C:\\ProgramData\\Jenkins\\.docker'
     }
 
     stages {
