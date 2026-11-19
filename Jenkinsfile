@@ -16,58 +16,6 @@ pipeline {
     }
 
     stages {
-        stage('Diagnosticar flujo completo Docker Hub') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'dockerhub-credentials',
-            usernameVariable: 'DH_USER',
-            passwordVariable: 'DH_PAT'
-        )]) {
-            powershell '''
-                $pair = "$($env:DH_USER):$($env:DH_PAT)"
-                $bytes = [System.Text.Encoding]::UTF8.GetBytes($pair)
-                $basic = [Convert]::ToBase64String($bytes)
-
-                try {
-                    $auth = Invoke-RestMethod `
-                        -Uri "https://auth.docker.io/token?service=registry.docker.io&scope=repository:ivanlara30/bugistore-auth-service:pull,push" `
-                        -Headers @{ Authorization = "Basic $basic" }
-
-                    if (-not $auth.token) {
-                        throw "Docker Hub no devolvio un Bearer token."
-                    }
-
-                    Write-Host "PASO 1: Bearer token obtenido correctamente."
-
-                    $registry = Invoke-WebRequest `
-                        -Uri "https://registry-1.docker.io/v2/" `
-                        -Headers @{ Authorization = "Bearer $($auth.token)" } `
-                        -UseBasicParsing
-
-                    Write-Host "PASO 2: HTTP $([int]$registry.StatusCode)"
-
-                    if ([int]$registry.StatusCode -eq 200) {
-                        Write-Host "RESULTADO: Flujo Bearer completado correctamente."
-                    } else {
-                        throw "El registro no acepto el Bearer token."
-                    }
-                }
-                catch {
-                    $status = $_.Exception.Response.StatusCode.value__
-                    Write-Host "ERROR HTTP: $status"
-                    Write-Host "DETALLE: $($_.Exception.Message)"
-                    exit 1
-                }
-                finally {
-                    $pair = $null
-                    $basic = $null
-                    $auth = $null
-                    [Array]::Clear($bytes, 0, $bytes.Length)
-                }
-            '''
-        }
-    }
-}
         stage('Checkout') {
             steps {
                 echo 'Descargando el repositorio BugiStore...'
@@ -210,239 +158,92 @@ pipeline {
             }
         }
 
-        stage('Publicar en Docker Hub') {
+        stage('Prueba Docker Push sin Login') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-credentials',
-                        usernameVariable: 'DOCKERHUB_USER',
-                        passwordVariable: 'DOCKERHUB_TOKEN'
-                    )
-                ]) {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DH_USER',
+                    passwordVariable: 'DH_PAT'
+                )]) {
                     powershell '''
                         $ErrorActionPreference = "Stop"
 
-                        # DIAGNOSTICO SEGURO DE LA CREDENCIAL
-                        Write-Host "======================================"
-                        Write-Host "DIAGNOSTICO DE CREDENCIAL DOCKER HUB"
-                        Write-Host "======================================"
+                        $docker = $env:DOCKER_EXE
+                        $tempConfig = Join-Path $env:WORKSPACE ".docker-auth-test"
+                        $bytes = $null
+                        $pair = $null
+                        $auth = $null
 
-                        Write-Host "Usuario Docker Hub: $env:DOCKERHUB_USER"
-                        Write-Host "Longitud del token: $($env:DOCKERHUB_TOKEN.Length)"
-                        Write-Host "Prefijo correcto: $($env:DOCKERHUB_TOKEN.StartsWith('dckr_pat_'))"
-
-                        # HUELLA SHA-256 SIN MOSTRAR EL TOKEN
-                        $bytes = [System.Text.Encoding]::UTF8.GetBytes(
-                            $env:DOCKERHUB_TOKEN
-                        )
-
-                        $sha = [System.Security.Cryptography.SHA256]::Create()
+                        New-Item -ItemType Directory -Force $tempConfig | Out-Null
 
                         try {
-                            $hashBytes = $sha.ComputeHash($bytes)
-                            $hash = [BitConverter]::ToString($hashBytes).Replace("-", "")
-                            Write-Host "Huella SHA-256 Jenkins: $hash"
-                        }
-                        finally {
-                            $sha.Dispose()
-                        }
+                            Write-Host "Preparando autenticacion temporal..."
 
-                        Write-Host "======================================"
+                            $pair = "$($env:DH_USER):$($env:DH_PAT)"
+                            $bytes = [System.Text.Encoding]::UTF8.GetBytes($pair)
+                            $auth = [Convert]::ToBase64String($bytes)
 
-                        # DIAGNOSTICO DEL ENTORNO DOCKER
-                        Write-Host "DIAGNOSTICO DEL ENTORNO DOCKER"
-                        Write-Host "======================================"
-
-                        Write-Host "Usuario Windows:"
-                        whoami
-
-                        Write-Host "USERPROFILE: $env:USERPROFILE"
-                        Write-Host "DOCKER_CONFIG: $env:DOCKER_CONFIG"
-                        Write-Host "DOCKER_HOST: $env:DOCKER_HOST"
-                        Write-Host "DOCKER_CONTEXT: $env:DOCKER_CONTEXT"
-
-                        Write-Host "Version de Docker:"
-                        & $env:DOCKER_EXE version
-
-                        if ($LASTEXITCODE -ne 0) {
-                            throw "No se pudo consultar Docker"
-                        }
-
-                        Write-Host "Contexto Docker:"
-                        & $env:DOCKER_EXE context show
-
-                        if ($LASTEXITCODE -ne 0) {
-                            throw "No se pudo consultar el contexto Docker"
-                        }
-
-                        Write-Host "======================================"
-
-                        # INICIAR SESION EN DOCKER HUB CON ENTRADA UTF-8
-                        Write-Host "Iniciando sesion en Docker Hub mediante UTF-8..."
-
-                        $startInfo = New-Object System.Diagnostics.ProcessStartInfo
-                        $startInfo.FileName = $env:DOCKER_EXE
-                        $startInfo.Arguments = "login --username `"$env:DOCKERHUB_USER`" --password-stdin"
-                        $startInfo.UseShellExecute = $false
-                        $startInfo.RedirectStandardInput = $true
-                        $startInfo.RedirectStandardOutput = $true
-                        $startInfo.RedirectStandardError = $true
-
-                        $process = New-Object System.Diagnostics.Process
-                        $process.StartInfo = $startInfo
-
-                        try {
-                            $null = $process.Start()
-
-                            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-                            $stderrTask = $process.StandardError.ReadToEndAsync()
-
-                            $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes(
-                                $env:DOCKERHUB_TOKEN + "`n"
-                            )
-
-                            try {
-                                $process.StandardInput.BaseStream.Write(
-                                    $tokenBytes,
-                                    0,
-                                    $tokenBytes.Length
-                                )
-
-                                $process.StandardInput.BaseStream.Flush()
-                            }
-                            finally {
-                                [Array]::Clear(
-                                    $tokenBytes,
-                                    0,
-                                    $tokenBytes.Length
-                                )
-
-                                $process.StandardInput.Close()
-                            }
-
-                            $process.WaitForExit()
-
-                            $stdout = $stdoutTask.Result
-                            $stderr = $stderrTask.Result
-
-                            if ($stdout) {
-                                Write-Host $stdout
-                            }
-
-                            if ($stderr) {
-                                Write-Host $stderr
-                            }
-
-                            if ($process.ExitCode -ne 0) {
-                                throw "Error al iniciar sesion en Docker Hub. Codigo: $($process.ExitCode)"
-                            }
-
-                            Write-Host "Sesion de Docker Hub iniciada correctamente."
-                        }
-                        finally {
-                            $process.Dispose()
-                        }
-
-                        # PUBLICAR LAS SEIS IMAGENES
-                        try {
-                            $services = @(
-                                "auth-service",
-                                "user-service",
-                                "game-service",
-                                "purchase-service",
-                                "api-gateway",
-                                "frontend"
-                            )
-
-                            foreach ($service in $services) {
-                                $image = "$env:DOCKERHUB_REPO/bugistore-$service`:$env:IMAGE_TAG"
-
-                                Write-Host "Publicando $image"
-
-                                & $env:DOCKER_EXE push $image
-
-                                if ($LASTEXITCODE -ne 0) {
-                                    throw "Fallo la publicacion de $image"
+                            $config = @{
+                                auths = @{
+                                    "https://index.docker.io/v1/" = @{
+                                        auth = $auth
+                                    }
                                 }
-                            }
+                            } | ConvertTo-Json -Depth 5
 
-                            Write-Host "Las seis imagenes se publicaron correctamente."
-                        }
-                        finally {
-                            Write-Host "Cerrando sesion de Docker Hub..."
+                            [System.IO.File]::WriteAllText(
+                                (Join-Path $tempConfig "config.json"),
+                                $config,
+                                [System.Text.UTF8Encoding]::new($false)
+                            )
 
-                            & $env:DOCKER_EXE logout
+                            $env:DOCKER_CONFIG = $tempConfig
+
+                            Write-Host "Configuracion temporal preparada."
+                            Write-Host "Probando publicacion de una imagen..."
+
+                            $image = "$env:DOCKERHUB_REPO/bugistore-auth-service`:$env:IMAGE_TAG"
+
+                            & $docker push $image
 
                             if ($LASTEXITCODE -ne 0) {
-                                Write-Warning "No se pudo cerrar la sesion de Docker Hub."
+                                throw "El push de prueba fallo. Codigo: $LASTEXITCODE"
                             }
+
+                            Write-Host "RESULTADO: Docker publico la imagen correctamente."
+                        }
+                        finally {
+                            $pair = $null
+                            $auth = $null
+
+                            if ($null -ne $bytes) {
+                                [Array]::Clear($bytes, 0, $bytes.Length)
+                            }
+
+                            Remove-Item $tempConfig -Recurse -Force -ErrorAction SilentlyContinue
+
+                            $env:DOCKER_CONFIG = "C:\\ProgramData\\Jenkins\\.docker"
+
+                            Write-Host "Configuracion temporal eliminada."
                         }
                     '''
                 }
             }
         }
-        stage('Prueba Docker Push sin Login') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'dockerhub-credentials',
-            usernameVariable: 'DH_USER',
-            passwordVariable: 'DH_PAT'
-        )]) {
-            powershell '''
-                $docker = $env:DOCKER_EXE
-                $tempConfig = Join-Path $env:WORKSPACE ".docker-auth-test"
 
-                New-Item -ItemType Directory -Force $tempConfig | Out-Null
-
-                try {
-                    $pair = "$($env:DH_USER):$($env:DH_PAT)"
-                    $bytes = [System.Text.Encoding]::UTF8.GetBytes($pair)
-                    $auth = [Convert]::ToBase64String($bytes)
-
-                    $config = @{
-                        auths = @{
-                            "https://index.docker.io/v1/" = @{
-                                auth = $auth
-                            }
-                        }
-                    } | ConvertTo-Json -Depth 5
-
-                    [System.IO.File]::WriteAllText(
-                        (Join-Path $tempConfig "config.json"),
-                        $config,
-                        [System.Text.UTF8Encoding]::new($false)
-                    )
-
-                    $env:DOCKER_CONFIG = $tempConfig
-
-                    Write-Host "Probando publicacion de una imagen..."
-
-                    & $docker push "ivanlara30/bugistore-auth-service:jenkins-$env:BUILD_NUMBER"
-
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "El push de prueba fallo. Codigo: $LASTEXITCODE"
-                    }
-
-                    Write-Host "RESULTADO: Docker publico la imagen correctamente."
-                }
-                finally {
-                    $pair = $null
-                    $auth = $null
-                    [Array]::Clear($bytes, 0, $bytes.Length)
-
-                    Remove-Item $tempConfig -Recurse -Force -ErrorAction SilentlyContinue
-                    $env:DOCKER_CONFIG = "C:\\ProgramData\\Jenkins\\.docker"
-                }
-            '''
+        stage('Publicar en Docker Hub') {
+            when {
+                expression { false }
+            }
+            steps {
+                echo 'Publicacion normal desactivada temporalmente durante el diagnostico.'
+            }
         }
-    }
-}
     }
 
     post {
         success {
-            echo 'Pipeline BugiStore completado correctamente.'
-            echo 'Las seis imagenes se publicaron con su etiqueta Jenkins.'
+            echo 'Pruebas y diagnostico completados correctamente.'
         }
 
         failure {
