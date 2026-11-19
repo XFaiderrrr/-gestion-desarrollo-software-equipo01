@@ -113,6 +113,7 @@ pipeline {
                     try {
                         & $env:DOCKER_EXE run -d `
                             --name $container `
+                            --network gestion-desarrollo-software-equipo01_backend `
                             -p 18082:80 $image
 
                         if ($LASTEXITCODE -ne 0) {
