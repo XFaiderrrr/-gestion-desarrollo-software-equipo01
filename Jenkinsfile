@@ -198,6 +198,34 @@ pipeline {
 
                         Write-Host "======================================"
 
+                        # DIAGNOSTICO DEL ENTORNO DOCKER
+                        Write-Host "DIAGNOSTICO DEL ENTORNO DOCKER"
+                        Write-Host "======================================"
+
+                        Write-Host "Usuario Windows:"
+                        whoami
+
+                        Write-Host "USERPROFILE: $env:USERPROFILE"
+                        Write-Host "DOCKER_CONFIG: $env:DOCKER_CONFIG"
+                        Write-Host "DOCKER_HOST: $env:DOCKER_HOST"
+                        Write-Host "DOCKER_CONTEXT: $env:DOCKER_CONTEXT"
+
+                        Write-Host "Version de Docker:"
+                        & $env:DOCKER_EXE version
+
+                        if ($LASTEXITCODE -ne 0) {
+                            throw "No se pudo consultar Docker"
+                        }
+
+                        Write-Host "Contexto Docker:"
+                        & $env:DOCKER_EXE context show
+
+                        if ($LASTEXITCODE -ne 0) {
+                            throw "No se pudo consultar el contexto Docker"
+                        }
+
+                        Write-Host "======================================"
+
                         # INICIAR SESION
                         $env:DOCKERHUB_TOKEN |
                             & $env:DOCKER_EXE login `
