@@ -16,6 +16,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 echo 'Descargando el repositorio BugiStore...'
@@ -29,6 +30,7 @@ pipeline {
                     $ErrorActionPreference = "Stop"
 
                     & $env:DOCKER_EXE pull php:8.2-cli
+
                     if ($LASTEXITCODE -ne 0) {
                         throw "No se pudo descargar PHP 8.2"
                     }
@@ -102,6 +104,8 @@ pipeline {
                     if ($LASTEXITCODE -ne 0) {
                         throw "Fallo la construccion del frontend"
                     }
+
+                    Write-Host "Las seis imagenes fueron construidas correctamente."
                 '''
             }
         }
@@ -158,7 +162,7 @@ pipeline {
             }
         }
 
-        stage('Prueba Docker Push sin Login') {
+        stage('Publicar en Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-credentials',
@@ -169,7 +173,8 @@ pipeline {
                         $ErrorActionPreference = "Stop"
 
                         $docker = $env:DOCKER_EXE
-                        $tempConfig = Join-Path $env:WORKSPACE ".docker-auth-test"
+                        $tempConfig = Join-Path $env:WORKSPACE ".docker-auth-$env:BUILD_NUMBER"
+
                         $bytes = $null
                         $pair = $null
                         $auth = $null
@@ -177,7 +182,12 @@ pipeline {
                         New-Item -ItemType Directory -Force $tempConfig | Out-Null
 
                         try {
-                            Write-Host "Preparando autenticacion temporal..."
+                            Write-Host "======================================"
+                            Write-Host "AUTENTICACION TEMPORAL DOCKER HUB"
+                            Write-Host "======================================"
+
+                            Write-Host "Usuario: $env:DH_USER"
+                            Write-Host "Preparando credenciales..."
 
                             $pair = "$($env:DH_USER):$($env:DH_PAT)"
                             $bytes = [System.Text.Encoding]::UTF8.GetBytes($pair)
@@ -199,18 +209,37 @@ pipeline {
 
                             $env:DOCKER_CONFIG = $tempConfig
 
-                            Write-Host "Configuracion temporal preparada."
-                            Write-Host "Probando publicacion de una imagen..."
+                            Write-Host "Autenticacion temporal preparada correctamente."
+                            Write-Host "======================================"
+                            Write-Host "PUBLICANDO IMAGENES"
+                            Write-Host "======================================"
 
-                            $image = "$env:DOCKERHUB_REPO/bugistore-auth-service`:$env:IMAGE_TAG"
+                            $services = @(
+                                "auth-service",
+                                "user-service",
+                                "game-service",
+                                "purchase-service",
+                                "api-gateway",
+                                "frontend"
+                            )
 
-                            & $docker push $image
+                            foreach ($service in $services) {
+                                $image = "$env:DOCKERHUB_REPO/bugistore-$service`:$env:IMAGE_TAG"
 
-                            if ($LASTEXITCODE -ne 0) {
-                                throw "El push de prueba fallo. Codigo: $LASTEXITCODE"
+                                Write-Host "Publicando $image"
+
+                                & $docker push $image
+
+                                if ($LASTEXITCODE -ne 0) {
+                                    throw "Fallo la publicacion de $image"
+                                }
+
+                                Write-Host "Publicacion completada: $image"
                             }
 
-                            Write-Host "RESULTADO: Docker publico la imagen correctamente."
+                            Write-Host "======================================"
+                            Write-Host "LAS SEIS IMAGENES SE PUBLICARON CORRECTAMENTE"
+                            Write-Host "======================================"
                         }
                         finally {
                             $pair = $null
@@ -230,20 +259,12 @@ pipeline {
                 }
             }
         }
-
-        stage('Publicar en Docker Hub') {
-            when {
-                expression { false }
-            }
-            steps {
-                echo 'Publicacion normal desactivada temporalmente durante el diagnostico.'
-            }
-        }
     }
 
     post {
         success {
-            echo 'Pruebas y diagnostico completados correctamente.'
+            echo 'Pipeline BugiStore completado correctamente.'
+            echo 'Las seis imagenes fueron publicadas en Docker Hub.'
         }
 
         failure {
