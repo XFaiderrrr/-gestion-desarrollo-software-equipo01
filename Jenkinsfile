@@ -381,6 +381,62 @@ pipeline {
                 }
             }
         }
+        stage('Prueba Docker Push sin Login') {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'dockerhub-credentials',
+            usernameVariable: 'DH_USER',
+            passwordVariable: 'DH_PAT'
+        )]) {
+            powershell '''
+                $docker = $env:DOCKER_EXE
+                $tempConfig = Join-Path $env:WORKSPACE ".docker-auth-test"
+
+                New-Item -ItemType Directory -Force $tempConfig | Out-Null
+
+                try {
+                    $pair = "$($env:DH_USER):$($env:DH_PAT)"
+                    $bytes = [System.Text.Encoding]::UTF8.GetBytes($pair)
+                    $auth = [Convert]::ToBase64String($bytes)
+
+                    $config = @{
+                        auths = @{
+                            "https://index.docker.io/v1/" = @{
+                                auth = $auth
+                            }
+                        }
+                    } | ConvertTo-Json -Depth 5
+
+                    [System.IO.File]::WriteAllText(
+                        (Join-Path $tempConfig "config.json"),
+                        $config,
+                        [System.Text.UTF8Encoding]::new($false)
+                    )
+
+                    $env:DOCKER_CONFIG = $tempConfig
+
+                    Write-Host "Probando publicacion de una imagen..."
+
+                    & $docker push "ivanlara30/bugistore-auth-service:jenkins-$env:BUILD_NUMBER"
+
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "El push de prueba fallo. Codigo: $LASTEXITCODE"
+                    }
+
+                    Write-Host "RESULTADO: Docker publico la imagen correctamente."
+                }
+                finally {
+                    $pair = $null
+                    $auth = $null
+                    [Array]::Clear($bytes, 0, $bytes.Length)
+
+                    Remove-Item $tempConfig -Recurse -Force -ErrorAction SilentlyContinue
+                    $env:DOCKER_CONFIG = "C:\\ProgramData\\Jenkins\\.docker"
+                }
+            '''
+        }
+    }
+}
     }
 
     post {
