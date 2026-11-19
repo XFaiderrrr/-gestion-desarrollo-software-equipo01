@@ -179,7 +179,7 @@ pipeline {
                         Write-Host "Longitud del token: $($env:DOCKERHUB_TOKEN.Length)"
                         Write-Host "Prefijo correcto: $($env:DOCKERHUB_TOKEN.StartsWith('dckr_pat_'))"
 
-                        # CALCULAR HUELLA SHA-256 SIN MOSTRAR EL TOKEN
+                        # HUELLA SHA-256 SIN MOSTRAR EL TOKEN
                         $bytes = [System.Text.Encoding]::UTF8.GetBytes(
                             $env:DOCKERHUB_TOKEN
                         )
@@ -189,7 +189,6 @@ pipeline {
                         try {
                             $hashBytes = $sha.ComputeHash($bytes)
                             $hash = [BitConverter]::ToString($hashBytes).Replace("-", "")
-
                             Write-Host "Huella SHA-256 Jenkins: $hash"
                         }
                         finally {
@@ -226,16 +225,73 @@ pipeline {
 
                         Write-Host "======================================"
 
-                        # INICIAR SESION
-                        $env:DOCKERHUB_TOKEN |
-                            & $env:DOCKER_EXE login `
-                                --username $env:DOCKERHUB_USER `
-                                --password-stdin
+                        # INICIAR SESION EN DOCKER HUB CON ENTRADA UTF-8
+                        Write-Host "Iniciando sesion en Docker Hub mediante UTF-8..."
 
-                        if ($LASTEXITCODE -ne 0) {
-                            throw "Error al iniciar sesion en Docker Hub"
+                        $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+                        $startInfo.FileName = $env:DOCKER_EXE
+                        $startInfo.Arguments = "login --username `"$env:DOCKERHUB_USER`" --password-stdin"
+                        $startInfo.UseShellExecute = $false
+                        $startInfo.RedirectStandardInput = $true
+                        $startInfo.RedirectStandardOutput = $true
+                        $startInfo.RedirectStandardError = $true
+
+                        $process = New-Object System.Diagnostics.Process
+                        $process.StartInfo = $startInfo
+
+                        try {
+                            $null = $process.Start()
+
+                            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+                            $stderrTask = $process.StandardError.ReadToEndAsync()
+
+                            $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes(
+                                $env:DOCKERHUB_TOKEN + "`n"
+                            )
+
+                            try {
+                                $process.StandardInput.BaseStream.Write(
+                                    $tokenBytes,
+                                    0,
+                                    $tokenBytes.Length
+                                )
+
+                                $process.StandardInput.BaseStream.Flush()
+                            }
+                            finally {
+                                [Array]::Clear(
+                                    $tokenBytes,
+                                    0,
+                                    $tokenBytes.Length
+                                )
+
+                                $process.StandardInput.Close()
+                            }
+
+                            $process.WaitForExit()
+
+                            $stdout = $stdoutTask.Result
+                            $stderr = $stderrTask.Result
+
+                            if ($stdout) {
+                                Write-Host $stdout
+                            }
+
+                            if ($stderr) {
+                                Write-Host $stderr
+                            }
+
+                            if ($process.ExitCode -ne 0) {
+                                throw "Error al iniciar sesion en Docker Hub. Codigo: $($process.ExitCode)"
+                            }
+
+                            Write-Host "Sesion de Docker Hub iniciada correctamente."
+                        }
+                        finally {
+                            $process.Dispose()
                         }
 
+                        # PUBLICAR LAS SEIS IMAGENES
                         try {
                             $services = @(
                                 "auth-service",
@@ -257,9 +313,17 @@ pipeline {
                                     throw "Fallo la publicacion de $image"
                                 }
                             }
+
+                            Write-Host "Las seis imagenes se publicaron correctamente."
                         }
                         finally {
+                            Write-Host "Cerrando sesion de Docker Hub..."
+
                             & $env:DOCKER_EXE logout
+
+                            if ($LASTEXITCODE -ne 0) {
+                                Write-Warning "No se pudo cerrar la sesion de Docker Hub."
+                            }
                         }
                     '''
                 }
