@@ -16,7 +16,7 @@ pipeline {
     }
 
     stages {
-        stage('Diagnosticar autenticacion Docker Hub') {
+        stage('Diagnosticar flujo completo Docker Hub') {
     steps {
         withCredentials([usernamePassword(
             credentialsId: 'dockerhub-credentials',
@@ -28,40 +28,46 @@ pipeline {
                 $bytes = [System.Text.Encoding]::UTF8.GetBytes($pair)
                 $basic = [Convert]::ToBase64String($bytes)
 
-                $uri = "https://auth.docker.io/token?service=registry.docker.io&scope=repository:ivanlara30/auth-service:pull,push"
-
                 try {
-                    $response = Invoke-WebRequest `
-                        -Uri $uri `
-                        -Method Get `
-                        -Headers @{ Authorization = "Basic $basic" } `
+                    $auth = Invoke-RestMethod `
+                        -Uri "https://auth.docker.io/token?service=registry.docker.io&scope=repository:ivanlara30/bugistore-auth-service:pull,push" `
+                        -Headers @{ Authorization = "Basic $basic" }
+
+                    if (-not $auth.token) {
+                        throw "Docker Hub no devolvio un Bearer token."
+                    }
+
+                    Write-Host "PASO 1: Bearer token obtenido correctamente."
+
+                    $registry = Invoke-WebRequest `
+                        -Uri "https://registry-1.docker.io/v2/" `
+                        -Headers @{ Authorization = "Bearer $($auth.token)" } `
                         -UseBasicParsing
 
-                    Write-Host "Respuesta HTTP: $([int]$response.StatusCode)"
+                    Write-Host "PASO 2: HTTP $([int]$registry.StatusCode)"
 
-                    if ([int]$response.StatusCode -eq 200) {
-                        Write-Host "RESULTADO: Docker Hub acepto las credenciales de Jenkins."
+                    if ([int]$registry.StatusCode -eq 200) {
+                        Write-Host "RESULTADO: Flujo Bearer completado correctamente."
                     } else {
-                        Write-Host "RESULTADO: Respuesta inesperada."
-                        exit 1
+                        throw "El registro no acepto el Bearer token."
                     }
                 }
                 catch {
                     $status = $_.Exception.Response.StatusCode.value__
-                    Write-Host "RESULTADO: Fallo la autenticacion directa."
-                    Write-Host "Codigo HTTP: $status"
+                    Write-Host "ERROR HTTP: $status"
+                    Write-Host "DETALLE: $($_.Exception.Message)"
                     exit 1
                 }
                 finally {
                     $pair = $null
                     $basic = $null
+                    $auth = $null
                     [Array]::Clear($bytes, 0, $bytes.Length)
                 }
             '''
         }
     }
 }
-
         stage('Checkout') {
             steps {
                 echo 'Descargando el repositorio BugiStore...'
