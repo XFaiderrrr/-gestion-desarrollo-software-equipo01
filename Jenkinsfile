@@ -15,6 +15,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 echo 'Descargando el repositorio BugiStore...'
@@ -44,6 +45,7 @@ pipeline {
                     foreach ($file in $files) {
                         $relative = $file.FullName.Substring($env:WORKSPACE.Length).TrimStart('\\')
                         $relative = $relative.Replace('\\', '/')
+
                         Write-Host "Validando: $relative"
 
                         & $env:DOCKER_EXE run --rm `
@@ -61,7 +63,7 @@ pipeline {
             }
         }
 
-        stage('Construir imágenes Docker') {
+        stage('Construir imagenes Docker') {
             steps {
                 powershell '''
                     $ErrorActionPreference = "Stop"
@@ -85,18 +87,20 @@ pipeline {
                             -t $image .
 
                         if ($LASTEXITCODE -ne 0) {
-                            throw "Falló la construcción de $service"
+                            throw "Fallo la construccion de $service"
                         }
                     }
 
                     $frontendImage = "$env:DOCKERHUB_REPO/bugistore-frontend`:$env:IMAGE_TAG"
+
+                    Write-Host "Construyendo $frontendImage"
 
                     & $env:DOCKER_EXE build `
                         -f docker/frontend.Dockerfile `
                         -t $frontendImage .
 
                     if ($LASTEXITCODE -ne 0) {
-                        throw "Falló la construcción del frontend"
+                        throw "Fallo la construccion del frontend"
                     }
                 '''
             }
@@ -142,7 +146,7 @@ pipeline {
                         }
 
                         if (-not $ready) {
-                            throw "El frontend no respondió correctamente"
+                            throw "El frontend no respondio correctamente"
                         }
 
                         Write-Host "Frontend verificado: HTTP 200"
@@ -166,16 +170,45 @@ pipeline {
                     powershell '''
                         $ErrorActionPreference = "Stop"
 
+                        # DIAGNOSTICO SEGURO DE LA CREDENCIAL
+                        Write-Host "======================================"
+                        Write-Host "DIAGNOSTICO DE CREDENCIAL DOCKER HUB"
+                        Write-Host "======================================"
+
+                        Write-Host "Usuario Docker Hub: $env:DOCKERHUB_USER"
+                        Write-Host "Longitud del token: $($env:DOCKERHUB_TOKEN.Length)"
+                        Write-Host "Prefijo correcto: $($env:DOCKERHUB_TOKEN.StartsWith('dckr_pat_'))"
+
+                        # CALCULAR HUELLA SHA-256 SIN MOSTRAR EL TOKEN
+                        $bytes = [System.Text.Encoding]::UTF8.GetBytes(
+                            $env:DOCKERHUB_TOKEN
+                        )
+
+                        $sha = [System.Security.Cryptography.SHA256]::Create()
+
                         try {
-                            $env:DOCKERHUB_TOKEN |
-                                & $env:DOCKER_EXE login `
-                                    --username $env:DOCKERHUB_USER `
-                                    --password-stdin
+                            $hashBytes = $sha.ComputeHash($bytes)
+                            $hash = [BitConverter]::ToString($hashBytes).Replace("-", "")
 
-                            if ($LASTEXITCODE -ne 0) {
-                                throw "Error al iniciar sesión en Docker Hub"
-                            }
+                            Write-Host "Huella SHA-256 Jenkins: $hash"
+                        }
+                        finally {
+                            $sha.Dispose()
+                        }
 
+                        Write-Host "======================================"
+
+                        # INICIAR SESION
+                        $env:DOCKERHUB_TOKEN |
+                            & $env:DOCKER_EXE login `
+                                --username $env:DOCKERHUB_USER `
+                                --password-stdin
+
+                        if ($LASTEXITCODE -ne 0) {
+                            throw "Error al iniciar sesion en Docker Hub"
+                        }
+
+                        try {
                             $services = @(
                                 "auth-service",
                                 "user-service",
@@ -193,7 +226,7 @@ pipeline {
                                 & $env:DOCKER_EXE push $image
 
                                 if ($LASTEXITCODE -ne 0) {
-                                    throw "Falló la publicación de $image"
+                                    throw "Fallo la publicacion de $image"
                                 }
                             }
                         }
@@ -208,16 +241,16 @@ pipeline {
 
     post {
         success {
-            echo '¡Pipeline BugiStore completado correctamente!'
-            echo 'Las seis imágenes se publicaron con su etiqueta Jenkins.'
+            echo 'Pipeline BugiStore completado correctamente.'
+            echo 'Las seis imagenes se publicaron con su etiqueta Jenkins.'
         }
 
         failure {
-            echo 'El pipeline falló. Revisa la consola para identificar la etapa.'
+            echo 'El pipeline fallo. Revisa la consola para identificar la etapa.'
         }
 
         always {
-            echo 'Finalizó la ejecución del pipeline BugiStore.'
+            echo 'Finalizo la ejecucion del pipeline BugiStore.'
         }
     }
 }
