@@ -16,6 +16,51 @@ pipeline {
     }
 
     stages {
+        stage('Diagnosticar autenticacion Docker Hub') {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'dockerhub-credentials',
+            usernameVariable: 'DH_USER',
+            passwordVariable: 'DH_PAT'
+        )]) {
+            powershell '''
+                $pair = "$($env:DH_USER):$($env:DH_PAT)"
+                $bytes = [System.Text.Encoding]::UTF8.GetBytes($pair)
+                $basic = [Convert]::ToBase64String($bytes)
+
+                $uri = "https://auth.docker.io/token?service=registry.docker.io&scope=repository:ivanlara30/auth-service:pull,push"
+
+                try {
+                    $response = Invoke-WebRequest `
+                        -Uri $uri `
+                        -Method Get `
+                        -Headers @{ Authorization = "Basic $basic" } `
+                        -UseBasicParsing
+
+                    Write-Host "Respuesta HTTP: $([int]$response.StatusCode)"
+
+                    if ([int]$response.StatusCode -eq 200) {
+                        Write-Host "RESULTADO: Docker Hub acepto las credenciales de Jenkins."
+                    } else {
+                        Write-Host "RESULTADO: Respuesta inesperada."
+                        exit 1
+                    }
+                }
+                catch {
+                    $status = $_.Exception.Response.StatusCode.value__
+                    Write-Host "RESULTADO: Fallo la autenticacion directa."
+                    Write-Host "Codigo HTTP: $status"
+                    exit 1
+                }
+                finally {
+                    $pair = $null
+                    $basic = $null
+                    [Array]::Clear($bytes, 0, $bytes.Length)
+                }
+            '''
+        }
+    }
+}
 
         stage('Checkout') {
             steps {
