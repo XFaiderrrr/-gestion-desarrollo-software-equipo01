@@ -1,5 +1,7 @@
 # BugiStore 🎮
 
+EDICION PARA PRUEBA
+
 Sistema web de gestión y venta de videojuegos desarrollado mediante una arquitectura de microservicios. El proyecto integra autenticación, gestión de usuarios, catálogo de videojuegos, compras, control de inventario, panel administrativo, Progressive Web App (PWA), contenedorización con Docker e integración y entrega continua (CI/CD) mediante GitHub Actions y Jenkins.
 
 ---
